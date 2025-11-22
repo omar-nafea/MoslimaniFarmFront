@@ -137,3 +137,44 @@ img {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+/* Form Styles */
+.form-group {
+  margin-bottom: var(--spacing-lg);
+}
+
+.form-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+  margin-bottom: var(--spacing-xs);
+  margin-left: 4px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #f0f0f0;
+  border-radius: var(--radius-md);
+  background-color: #fcfcfc;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  outline: none;
+  color: var(--color-text-main);
+}
+
+.form-input:focus {
+  border-color: var(--color-primary);
+  background-color: white;
+  box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.1);
+}
+
+.form-input::placeholder {
+  color: #aaa;
+}
+
+textarea.form-input {
+  resize: none;
+  min-height: 120px;
+}

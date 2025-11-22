@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authService } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -17,71 +18,79 @@ export const AuthProvider = ({ children }) => {
 
   // Load user from localStorage on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
-        setIsAuthenticated(true);
-      } catch (error) {
-        console.error('Failed to parse user from localStorage:', error);
-        localStorage.removeItem('user');
+    const initializeAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          // Verify token by fetching profile
+          const response = await authService.getProfile();
+          setUser(response.data);
+          setIsAuthenticated(true);
+        } catch (error) {
+          console.error('Failed to fetch user profile:', error);
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
       }
-    }
-    setIsLoading(false);
-  }, []);
-
-  const signup = (userData) => {
-    // In a real app, this would make an API call
-    const newUser = {
-      id: Date.now(),
-      name: userData.name,
-      email: userData.email,
-      phone: userData.phone,
-      createdAt: new Date().toISOString(),
+      setIsLoading(false);
     };
 
-    localStorage.setItem('user', JSON.stringify(newUser));
-    localStorage.setItem('userPassword', userData.password); // In real app, never store passwords!
-    setUser(newUser);
-    setIsAuthenticated(true);
+    initializeAuth();
+  }, []);
 
-    return { success: true, user: newUser };
-  };
+  const signup = async (userData) => {
+    try {
+      const response = await authService.register(userData);
+      const { user, access_token } = response.data;
 
-  const login = (email, password) => {
-    // In a real app, this would validate against a backend
-    const storedPassword = localStorage.getItem('userPassword');
-    const storedUser = localStorage.getItem('user');
+      localStorage.setItem('token', access_token);
+      localStorage.setItem('user', JSON.stringify(user));
 
-    if (storedUser && storedPassword === password) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
+      setUser(user);
       setIsAuthenticated(true);
-      return { success: true, user: parsedUser };
-    }
 
-    return { success: false, message: 'Invalid email or password' };
+      return { success: true, user };
+    } catch (error) {
+      console.error('Signup error:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Registration failed'
+      };
+    }
   };
 
-  const logout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('userPassword');
-    setUser(null);
-    setIsAuthenticated(false);
+  const login = async (email, password) => {
+    try {
+      const response = await authService.login({ email, password });
+      const { user, access_token } = response.data;
+
+      localStorage.setItem('token', access_token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      setUser(user);
+      setIsAuthenticated(true);
+
+      return { success: true, user };
+    } catch (error) {
+      console.error('Login error:', error);
+      return {
+        success: false,
+        message: error.response?.data?.error || 'Invalid email or password'
+      };
+    }
   };
 
-  const verifyPhone = (otp) => {
-    // Mock verification - in real app, this would verify with backend/SMS service
-    if (otp === '123456' || otp.length === 6) {
-      if (user) {
-        const updatedUser = { ...user, phoneVerified: true };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        setUser(updatedUser);
-      }
-      return { success: true };
+  const logout = async () => {
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setUser(null);
+      setIsAuthenticated(false);
     }
-    return { success: false, message: 'Invalid OTP' };
   };
 
   const value = {
@@ -91,7 +100,6 @@ export const AuthProvider = ({ children }) => {
     signup,
     login,
     logout,
-    verifyPhone,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
