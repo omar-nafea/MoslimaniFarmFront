@@ -1,0 +1,84 @@
+.contact-page {
+  padding: var(--spacing-2xl) 0;
+  min-height: 80vh;
+  background-color: var(--color-surface-alt);
+}
+
+.contact-container {
+  max-width: 600px;
+}
+
+.contact-header {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.contact-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: var(--spacing-sm);
+}
+
+.contact-header p {
+  color: var(--color-text-muted);
+}
+
+.contact-card {
+  background: white;
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.form-group {
+  margin-bottom: var(--spacing-lg);
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  font-weight: 500;
+  color: var(--color-text-main);
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: var(--spacing-md);
+  border: 1px solid #ddd;
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.contact-direct {
+  margin-top: var(--spacing-xl);
+  text-align: center;
+  border-top: 1px solid #eee;
+  padding-top: var(--spacing-lg);
+}
+
+.contact-direct p {
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.phone-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-weight: 600;
+  color: var(--color-primary-dark);
+  font-size: 1.1rem;
+}

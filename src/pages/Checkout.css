@@ -1,0 +1,116 @@
+.checkout-page {
+  padding: var(--spacing-2xl) 0;
+  background-color: var(--color-surface-alt);
+  min-height: 80vh;
+}
+
+.checkout-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: var(--spacing-xl);
+  margin-top: var(--spacing-xl);
+}
+
+.order-summary,
+.checkout-form-container {
+  background: white;
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  height: fit-content;
+}
+
+.order-summary h2,
+.checkout-form-container h2 {
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid #eee;
+}
+
+.selected-product {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.selected-product img {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+}
+
+.selected-details h3 {
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+
+.selected-details .price {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.order-total {
+  border-top: 1px solid #eee;
+  padding-top: var(--spacing-md);
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-text-muted);
+}
+
+.total-row.final {
+  color: var(--color-text-main);
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-sm);
+  border-top: 2px dashed #eee;
+}
+
+.success-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.success-container {
+  text-align: center;
+  background: white;
+  padding: var(--spacing-2xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  max-width: 500px;
+}
+
+.success-container svg {
+  margin-bottom: var(--spacing-lg);
+}
+
+.success-container h1 {
+  margin-bottom: var(--spacing-md);
+  color: var(--color-primary-dark);
+}
+
+.success-container p {
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-xl);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .checkout-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .order-summary {
+    order: 2;
+  }
+
+  .checkout-form-container {
+    order: 1;
+  }
+}
