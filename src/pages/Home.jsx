@@ -7,8 +7,10 @@ import TestimonialCard from '../components/UI/TestimonialCard';
 import { products, testimonials } from '../data/products';
 import farmHero from '../assets/images/farm-hero.jpg';
 import './Home.css';
+import { useLanguage } from '../context/LanguageContext';
 
 const Home = () => {
+  const { t } = useLanguage();
   const seasonalProducts = products.filter(p => p.season === 'current').slice(0, 6);
   const upcomingProducts = products.filter(p => p.season === 'upcoming').slice(0, 3);
 
@@ -21,13 +23,14 @@ const Home = () => {
           <div className="hero-overlay"></div>
         </div>
         <div className="container hero-content">
-          <h1 className="hero-title">From farm to your home</h1>
+          <h1 className="hero-title">{t('hero.title')}</h1>
           <p className="hero-subtitle">
-            Moslimani Farm brings you premium fruits harvested at peak freshness and delivered to your doorstep within 24 hours. Taste the pure flavor of nature—straight from our soil to your home.
+            {t('hero.subtitle')}
           </p>
           <Link to="/products">
-            <Button variant="primary" className="hero-cta">
-              Shop Seasonal Fruits <ArrowRight size={20} style={{ marginLeft: '8px' }} />
+            {/* gradiant from yellow to dark yellow to green */}
+            <Button variant="primary" className="hero-cta" style={{ background: 'linear-gradient(to right, #DAA520, #228B22)' }}>
+              {t('hero.cta')} <ArrowRight size={20} style={{ marginInlineStart: '8px' }} />
             </Button>
           </Link>
         </div>
@@ -37,8 +40,8 @@ const Home = () => {
       <section className="section seasonal-section">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">Seasonal Fruits</h2>
-            <Link to="/products" className="view-all-link">View All</Link>
+            <h2 className="section-title">{t('home.seasonalTitle')}</h2>
+            <Link to="/products" className="view-all-link">{t('home.viewAll')}</Link>
           </div>
           <div className="products-grid">
             {seasonalProducts.map(product => (
@@ -51,7 +54,7 @@ const Home = () => {
       {/* Testimonials Section */}
       <section className="section testimonials-section">
         <div className="container">
-          <h2 className="section-title text-center">What Our Customers Say</h2>
+          <h2 className="section-title text-center">{t('home.testimonialsTitle')}</h2>
           <div className="testimonials-grid">
             {testimonials.map(testimonial => (
               <TestimonialCard key={testimonial.id} testimonial={testimonial} />
@@ -63,7 +66,7 @@ const Home = () => {
       {/* Upcoming Season Section */}
       <section className="section upcoming-section">
         <div className="container marb">
-          <h2 className="section-title ">Coming Next Season</h2>
+          <h2 className="section-title ">{t('home.upcomingTitle')}</h2>
           <div className="upcoming-grid">
             {upcomingProducts.map(product => (
               <div key={product.id} className="upcoming-card">

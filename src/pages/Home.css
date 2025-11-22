@@ -73,6 +73,7 @@
 
 .section-title {
   font-size: 2rem;
+  margin-bottom: var(--spacing-md);
   color: var(--color-primary-dark);
   position: relative;
   display: inline-block;

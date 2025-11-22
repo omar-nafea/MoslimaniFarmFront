@@ -1,70 +1,81 @@
 import React, { useState } from 'react';
-import { Phone, MessageCircle } from 'lucide-react';
+import { Phone, Mail, MapPin, Send } from 'lucide-react';
 import Button from '../components/UI/Button';
 import './Contact.css';
+import { useLanguage } from '../context/LanguageContext';
 
 const Contact = () => {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
+    name: '',
     phone: '',
     message: ''
   });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     // Construct WhatsApp URL
     const text = encodeURIComponent(`Hi, I have a question: ${formData.message}. My phone is ${formData.phone}`);
-    window.open(`https://wa.me/201234567890?text=${text}`, '_blank');
+    window.open(`https://wa.me/201557285489?text=${text}`, '_blank');
   };
 
   return (
     <div className="contact-page">
-      <div className="container contact-container">
-        <div className="contact-header">
-          <h1>Get in Touch</h1>
-          <p>Have a question or want to place a bulk order? We're here to help.</p>
+      <div className="container section">
+        <div className="contact-header text-center mb-8">
+          <h1 className="page-title">{t('contact.title')}</h1>
+          <p className="page-subtitle">{t('contact.subtitle')}</p>
         </div>
 
-        <div className="contact-card">
-          <form onSubmit={handleSubmit} className="contact-form">
+        <div className="contact-container">
+          <form className="contact-form" onSubmit={handleSubmit}>
             <div className="form-group">
-              <label htmlFor="phone">Phone Number</label>
+              <label htmlFor="name">{t('contact.name')}</label>
               <input
-                type="tel"
-                id="phone"
-                name="phone"
-                placeholder="01xxxxxxxxx"
-                value={formData.phone}
+                type="text"
+                id="name"
+                value={formData.name}
                 onChange={handleChange}
+                placeholder={t('contact.name')}
                 required
               />
             </div>
             <div className="form-group">
-              <label htmlFor="message">How can we help you?</label>
+              <label htmlFor="phone">{t('contact.phone')}</label>
+              <input
+                type="tel"
+                id="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder={t('contact.phone')}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="message">{t('contact.message')}</label>
               <textarea
                 id="message"
-                name="message"
-                rows="4"
-                placeholder="I'm interested in..."
+                rows="5"
                 value={formData.message}
                 onChange={handleChange}
+                placeholder={t('contact.message')}
                 required
               ></textarea>
             </div>
             <Button type="submit" variant="primary" className="w-full">
-              <MessageCircle size={20} style={{ marginRight: '8px' }} />
-              Message Us on WhatsApp
+              {t('contact.sendMessage')} <Send size={18} style={{ marginInlineStart: '8px' }} />
             </Button>
           </form>
 
           <div className="contact-direct">
-            <p>Or call us directly:</p>
-            <a href="tel:+201234567890" className="phone-link">
+            <p>{t('contact.orCall')}</p>
+            <a href="tel:+201557285489" className="phone-link">
               <Phone size={20} />
-              +20 123 456 7890
+              +20 155 728 5489
             </a>
           </div>
         </div>

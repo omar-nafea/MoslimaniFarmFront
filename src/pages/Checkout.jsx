@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { CheckCircle, MapPin, Navigation, Loader2, Trash2 } from 'lucide-react';
+import { CheckCircle, MapPin, Navigation, Loader2, Trash2, Package, CreditCard } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import Button from '../components/UI/Button';
 import { products } from '../data/products';
 import { useCart } from '../context/CartContext';
-import './Checkout.css';
+import { useLanguage } from '../context/LanguageContext';
 
 // Fix for default marker icon in React Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -41,6 +41,7 @@ const Checkout = () => {
   const productId = queryParams.get('product');
 
   const { cart, getCartTotal, clearCart, removeFromCart } = useCart();
+  const { t, language } = useLanguage();
 
   const [items, setItems] = useState([]);
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -75,7 +76,7 @@ const Checkout = () => {
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`,
         {
           headers: {
-            'Accept-Language': 'en'
+            'Accept-Language': language // Use current language for address
           }
         }
       );
@@ -193,168 +194,254 @@ const Checkout = () => {
 
   if (orderPlaced) {
     return (
-      <div className="checkout-page success-page flex min-h-screen items-center justify-center bg-green-50">
-        <div className="container success-container text-center p-8 bg-white rounded-2xl shadow-xl max-w-md">
-          <div className="flex justify-center mb-4">
-            <CheckCircle size={64} className="text-green-600" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100 p-4">
+        <div className="bg-white p-12 rounded-2xl shadow-2xl max-w-md w-full text-center">
+          <div className="flex justify-center mb-6">
+            <div className="bg-green-100 p-4 rounded-full">
+              <CheckCircle size={64} className="text-green-600" />
+            </div>
           </div>
-          <h1 className="text-3xl font-bold text-green-800 mb-2">Order Placed!</h1>
-          <p className="text-gray-600 mb-6">Thank you for choosing Moslimani Farm. We will contact you shortly to confirm delivery.</p>
-          <Button variant="primary" onClick={() => navigate('/')}>Return Home</Button>
+          <h1 className="text-3xl font-heading font-bold text-gray-900 mb-3">
+            {t('checkout.orderPlaced')}
+          </h1>
+          <p className="text-gray-600 mb-8 leading-relaxed">
+            {t('checkout.thankYou')}
+          </p>
+          <Button variant="gradient" onClick={() => navigate('/')} className="w-full">
+            {t('checkout.returnHome')}
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="checkout-page min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
-        <h1 className="page-title text-3xl font-bold text-gray-800 mb-8">Checkout</h1>
+    <div className="min-h-screen bg-gradient-to-br from-brand-cream via-white to-brand-surface-alt py-12">
+      <div className="container mx-auto px-4 max-w-7xl">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl md:text-5xl font-heading font-bold text-brand-green-dark mb-2">
+            {t('checkout.title')}
+          </h1>
+          <p className="text-gray-600">Complete your order and get fresh fruits delivered to your doorstep</p>
+        </div>
 
-        <div className="checkout-grid grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Order Summary */}
-          <div className="order-summary bg-white p-6 rounded-xl shadow-sm h-fit">
-            <h2 className="text-xl font-semibold mb-4 border-b pb-2">Your Order</h2>
-            {items.length > 0 ? (
-              <div className="space-y-4">
-                {items.map((item, index) => (
-                  <div key={index} className="selected-product flex gap-4 items-center">
-                    <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
-                    <div className="selected-details flex-1">
-                      <h3 className="font-medium">{item.name}</h3>
-                      <p className="text-sm text-gray-500">{item.price} EGP / {item.unit}</p>
-                    </div>
-                    <div className="quantity-control flex items-center gap-2">
-                      <label className="text-xs text-gray-500">Qty:</label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={item.quantity}
-                        onChange={(e) => handleQuantityChange(index, parseInt(e.target.value) || 1)}
-                        className="w-16 p-1 border rounded text-center"
-                      />
-                      <button
-                        onClick={() => removeFromCart(item.id)}
-                        className="text-red-500 hover:text-red-700 p-1"
-                        title="Remove item"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-                <div className="order-total mt-6 pt-4 border-t space-y-2">
-                  <div className="total-row flex justify-between text-gray-600">
-                    <span>Subtotal</span>
-                    <span>{totalAmount} EGP</span>
-                  </div>
-                  <div className="total-row flex justify-between text-gray-600">
-                    <span>Delivery</span>
-                    <span>20 EGP</span>
-                  </div>
-                  <div className="total-row final flex justify-between text-xl font-bold text-green-800 pt-2 border-t">
-                    <span>Total</span>
-                    <span>{totalAmount + 20} EGP</span>
-                  </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Delivery Details & Map */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Delivery Details Form */}
+            <div className="bg-white rounded-2xl shadow-brand-lg p-8 border border-gray-100">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="bg-gradient-to-r from-gradient-gold to-gradient-green p-3 rounded-xl">
+                  <Package className="text-white" size={24} />
                 </div>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500 mb-4">Your cart is empty.</p>
-                <Button variant="secondary" onClick={() => navigate('/products')}>Browse Products</Button>
-              </div>
-            )}
-          </div>
-
-          {/* Delivery Details */}
-          <div className="checkout-form-container bg-white p-6 rounded-xl shadow-sm">
-            <h2 className="text-xl font-semibold mb-4 border-b pb-2">Delivery Details</h2>
-            <form onSubmit={handleSubmit} className="checkout-form space-y-4">
-              <div className="form-group">
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                <input type="text" id="name" required placeholder="John Doe" className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none" />
+                <h2 className="text-2xl font-heading font-bold text-gray-900">
+                  {t('checkout.deliveryDetails')}
+                </h2>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                <input type="tel" id="phone" required placeholder="01xxxxxxxxx" className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none" />
-              </div>
-
-              <div className="form-group">
-                <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-medium text-gray-700">Delivery Location</label>
-                  <button
-                    type="button"
-                    onClick={handleGetLocation}
-                    className="text-sm text-green-600 flex items-center gap-1 hover:text-green-700 disabled:opacity-50"
-                    disabled={loadingLocation}
-                  >
-                    {loadingLocation ? <Loader2 size={14} className="animate-spin" /> : <Navigation size={14} />}
-                    {loadingLocation ? 'Locating...' : 'Use my location'}
-                  </button>
-                </div>
-
-                <div className="map-container h-64 w-full rounded-lg overflow-hidden border mb-2 relative">
-                  <MapContainer
-                    key={mapKey}
-                    center={mapPosition ? [mapPosition.lat, mapPosition.lng] : center}
-                    zoom={13}
-                    style={{ height: '100%', width: '100%' }}
-                    scrollWheelZoom={true}
-                  >
-                    <TileLayer
-                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
+                      {t('checkout.fullName')}
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      required
+                      placeholder="John Doe"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-gradient-gold focus:border-transparent outline-none transition-all"
                     />
-                    <LocationMarker onLocationSelect={handleLocationSelect} />
-                  </MapContainer>
+                  </div>
+
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
+                      {t('checkout.phone')}
+                    </label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      required
+                      placeholder="01xxxxxxxxx"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-gradient-gold focus:border-transparent outline-none transition-all"
+                    />
+                  </div>
                 </div>
 
-                <p className="text-xs text-gray-500 mb-2">Click on the map to select your delivery location</p>
+                {/* Map Section */}
+                <div>
+                  <div className="flex justify-between items-center mb-3">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      {t('checkout.deliveryLocation')}
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleGetLocation}
+                      className="flex items-center gap-2 text-sm font-medium text-gradient-green hover:text-gradient-gold disabled:opacity-50 transition-colors"
+                      disabled={loadingLocation}
+                    >
+                      {loadingLocation ? <Loader2 size={16} className="animate-spin" /> : <Navigation size={16} />}
+                      {loadingLocation ? t('checkout.locating') : t('checkout.useLocation')}
+                    </button>
+                  </div>
 
-                {mapPosition && (
-                  <p className="text-sm text-green-600 flex items-center gap-1 mb-2">
-                    <MapPin size={16} /> Location selected: {mapPosition.lat.toFixed(5)}, {mapPosition.lng.toFixed(5)}
+                  <div className="rounded-xl overflow-hidden border-2 border-gray-200 mb-3 h-80 relative bg-gray-100">
+                    <MapContainer
+                      key={mapKey}
+                      center={mapPosition ? [mapPosition.lat, mapPosition.lng] : center}
+                      zoom={13}
+                      style={{ height: '100%', width: '100%' }}
+                      scrollWheelZoom={true}
+                    >
+                      <TileLayer
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      />
+                      <LocationMarker onLocationSelect={handleLocationSelect} />
+                    </MapContainer>
+                  </div>
+
+                  <p className="text-xs text-gray-500 mb-3 italic">
+                    💡 {t('checkout.mapInstruction')}
                   </p>
-                )}
 
-                <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">Address Details</label>
-                <div className="relative">
-                  <textarea
-                    id="address"
-                    rows="3"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Click on the map to detect address, or enter manually..."
-                    className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none ${isFetchingAddress ? 'bg-gray-50' : ''}`}
-                  ></textarea>
-                  {isFetchingAddress && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-white/50 rounded-lg">
-                      <span className="text-sm text-green-700 font-medium flex items-center gap-2">
-                        <Loader2 size={16} className="animate-spin" /> Detecting address...
-                      </span>
+                  {mapPosition && (
+                    <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-gradient-gold/10 to-gradient-green/10 rounded-lg mb-4">
+                      <MapPin size={18} className="text-gradient-green flex-shrink-0" />
+                      <p className="text-sm font-medium text-gray-700">
+                        {t('checkout.locationSelected')}: {mapPosition.lat.toFixed(5)}, {mapPosition.lng.toFixed(5)}
+                      </p>
+                    </div>
+                  )}
+
+                  <div>
+                    <label htmlFor="address" className="block text-sm font-semibold text-gray-700 mb-2">
+                      {t('checkout.addressDetails')}
+                    </label>
+                    <div className="relative">
+                      <textarea
+                        id="address"
+                        rows="4"
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        placeholder={t('checkout.addressPlaceholder')}
+                        className={`w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-gradient-gold focus:border-transparent outline-none transition-all resize-none ${isFetchingAddress ? 'bg-gray-50' : ''
+                          }`}
+                      ></textarea>
+                      {isFetchingAddress && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-white/70 rounded-xl backdrop-blur-sm">
+                          <span className="text-sm text-gradient-green font-semibold flex items-center gap-2">
+                            <Loader2 size={18} className="animate-spin" />
+                            {t('checkout.detecting')}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Display extracted street and city */}
+                  {(streetAddress || city) && (
+                    <div className="grid grid-cols-2 gap-4 p-4 bg-green-50 rounded-xl border border-green-200">
+                      <div>
+                        <p className="text-xs font-semibold text-gray-600 mb-1">Street</p>
+                        <p className="text-sm font-medium text-gray-900">{streetAddress || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-600 mb-1">City</p>
+                        <p className="text-sm font-medium text-gray-900">{city || 'N/A'}</p>
+                      </div>
                     </div>
                   )}
                 </div>
 
-                {/* Display extracted street and city */}
-                {(streetAddress || city) && (
-                  <div className="mt-2 p-2 bg-green-50 rounded-lg text-sm">
-                    <p className="text-gray-700">
-                      <strong>Street:</strong> {streetAddress || 'N/A'}
-                    </p>
-                    <p className="text-gray-700">
-                      <strong>City:</strong> {city || 'N/A'}
-                    </p>
-                  </div>
-                )}
-              </div>
+                <Button
+                  type="submit"
+                  variant="gradient"
+                  className="w-full text-lg py-4 font-bold shadow-lg hover:shadow-xl transition-all"
+                  disabled={items.length === 0}
+                >
+                  <CreditCard size={22} className="mr-2" />
+                  {t('checkout.placeOrder')}
+                </Button>
+              </form>
+            </div>
+          </div>
 
-              <Button type="submit" variant="primary" className="w-full mt-4" disabled={items.length === 0}>
-                Place Order
-              </Button>
-            </form>
+          {/* Right Column - Order Summary */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-2xl shadow-brand-lg p-8 border border-gray-100 sticky top-24">
+              <h2 className="text-2xl font-heading font-bold text-gray-900 mb-6 pb-4 border-b-2 border-gray-100">
+                {t('checkout.yourOrder')}
+              </h2>
+
+              {items.length > 0 ? (
+                <div className="space-y-6">
+                  {/* Items */}
+                  <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+                    {items.map((item, index) => (
+                      <div key={index} className="flex gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                        <img
+                          src={item.image}
+                          alt={language === 'ar' ? item.nameAr : item.name}
+                          className="w-20 h-20 object-cover rounded-lg flex-shrink-0 shadow-sm"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-gray-900 truncate mb-1">
+                            {language === 'ar' ? item.nameAr : item.name}
+                          </h3>
+                          <p className="text-sm text-gray-500 mb-2">
+                            {item.price} {t('products.price')} / {language === 'ar' ? item.unitAr : item.unit}
+                          </p>
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="number"
+                              min="1"
+                              value={item.quantity}
+                              onChange={(e) => handleQuantityChange(index, parseInt(e.target.value) || 1)}
+                              className="w-16 px-2 py-1 border border-gray-300 rounded-lg text-center text-sm focus:ring-2 focus:ring-gradient-gold outline-none"
+                            />
+                            <button
+                              onClick={() => removeFromCart(item.id)}
+                              className="text-red-500 hover:text-red-700 p-1.5 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Remove item"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Totals */}
+                  <div className="space-y-3 pt-6 border-t-2 border-gray-100">
+                    <div className="flex justify-between text-gray-600">
+                      <span>{t('checkout.subtotal')}</span>
+                      <span className="font-semibold">{totalAmount} {t('products.price')}</span>
+                    </div>
+                    <div className="flex justify-between text-gray-600">
+                      <span>{t('checkout.delivery')}</span>
+                      <span className="font-semibold">20 {t('products.price')}</span>
+                    </div>
+                    <div className="flex justify-between text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gradient-gold to-gradient-green pt-3 border-t-2 border-dashed border-gray-200">
+                      <span>{t('checkout.total')}</span>
+                      <span>{totalAmount + 20} {t('products.price')}</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Package size={40} className="text-gray-400" />
+                  </div>
+                  <p className="text-gray-500 mb-6">{t('checkout.emptyCart')}</p>
+                  <Button variant="gradient" onClick={() => navigate('/products')}>
+                    {t('checkout.browseProducts')}
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
