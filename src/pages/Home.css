@@ -171,6 +171,10 @@
     gap: var(--spacing-md);
   }
 
+  .marb {
+    margin-bottom: 20px;
+  }
+
   /* Horizontal scroll for products on mobile if preferred */
   /*
   .products-grid {

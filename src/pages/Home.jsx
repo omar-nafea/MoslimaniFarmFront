@@ -62,8 +62,8 @@ const Home = () => {
 
       {/* Upcoming Season Section */}
       <section className="section upcoming-section">
-        <div className="container">
-          <h2 className="section-title">Coming Next Season</h2>
+        <div className="container marb">
+          <h2 className="section-title ">Coming Next Season</h2>
           <div className="upcoming-grid">
             {upcomingProducts.map(product => (
               <div key={product.id} className="upcoming-card">
