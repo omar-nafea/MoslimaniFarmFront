@@ -3,13 +3,15 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import Button from '../components/UI/Button';
-import { Mail, Lock, User, Phone, Loader2 } from 'lucide-react';
-import './login.css';
+import { Mail, Lock, User, Phone, Loader2, Eye, EyeOff } from 'lucide-react';
 
 const Signup = () => {
   const { signup } = useAuth();
   const { t } = useLanguage();
+  const { language } = useLanguage();
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -47,8 +49,8 @@ const Signup = () => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-nested-container">
+    <div className="min-h-[90vh] my-8">
+      <div className="max-w-[30rem] w-[90%] my-8 mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-heading font-bold text-brand-green-dark mb-2">
             {t('auth.signupTitle')}
@@ -133,11 +135,21 @@ const Signup = () => {
               {t('auth.password')}
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
-                <Lock size={20} />
+              {language === 'ar' ? <div className="absolute inset-y-0 left-0 pl-4 flex items-center cursor-pointer">
+                {showPassword ? <EyeOff size={20} onClick={() => setShowPassword(!showPassword)} /> : <Eye size={20} onClick={() => setShowPassword(!showPassword)} />}
               </div>
+                :
+                <>
+                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center cursor-pointer">
+                    {showPassword ? <EyeOff size={20} onClick={() => setShowPassword(!showPassword)} /> : <Eye size={20} onClick={() => setShowPassword(!showPassword)} />}
+                  </div>
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                    <Lock size={20} />
+                  </div>
+                </>
+              }
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 required
                 value={formData.password}
@@ -145,6 +157,7 @@ const Signup = () => {
                 className="form-input !pl-11"
                 placeholder="••••••••"
               />
+
             </div>
           </div>
 
@@ -153,11 +166,21 @@ const Signup = () => {
               {t('auth.confirmPassword')}
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
-                <Lock size={20} />
+              {language === 'ar' ? <div className="absolute inset-y-0 left-0 pl-4 flex items-center cursor-pointer">
+                {showPassword ? <EyeOff size={20} onClick={() => setShowPassword(!showPassword)} /> : <Eye size={20} onClick={() => setShowPassword(!showPassword)} />}
               </div>
+                :
+                <>
+                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center cursor-pointer">
+                    {showPassword ? <EyeOff size={20} onClick={() => setShowPassword(!showPassword)} /> : <Eye size={20} onClick={() => setShowPassword(!showPassword)} />}
+                  </div>
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                    <Lock size={20} />
+                  </div>
+                </>
+              }
               <input
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
                 name="password_confirmation"
                 required
                 value={formData.password_confirmation}
@@ -165,6 +188,7 @@ const Signup = () => {
                 className="form-input !pl-11"
                 placeholder="••••••••"
               />
+
             </div>
           </div>
 

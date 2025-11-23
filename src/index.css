@@ -1,180 +1,122 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../tailwind.config.js";
 
-:root {
-  /* Brand Colors */
-  --color-primary: #2E7D32;
-  /* Fresh Green */
-  --color-primary-dark: #1B5E20;
-  --color-primary-light: #4CAF50;
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 
-  --color-secondary: #F57C00;
-  /* Warm Orange */
-  --color-secondary-light: #FF9800;
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: #FFFDF5;
+    color: #1A1A1A;
+    /* line-height: 1.6; */
+    -webkit-font-smoothing: antialiased;
+  }
 
-  --color-accent: #D32F2F;
-  /* Fruit Red */
-  --color-yellow: #FBC02D;
-  /* Sun Yellow */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Outfit', sans-serif;
+    color: #1B5E20;
+    line-height: 1.2;
+    font-weight: 700;
+  }
 
-  --color-background: #FFFDF5;
-  /* Warm Cream/Beige */
-  --color-surface: #FFFFFF;
-  --color-surface-alt: #F5F5F0;
+  button {
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    border: none;
+    outline: none;
+  }
 
-  --color-text-main: #1A1A1A;
-  --color-text-muted: #555555;
-  --color-text-light: #888888;
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
 
-  /* Typography */
-  --font-heading: 'Outfit', sans-serif;
-  --font-body: 'Inter', sans-serif;
-  --font-hand: 'Caveat', cursive;
-  /* For slogans */
-
-  /* Spacing */
-  --spacing-xs: 0.25rem;
-  --spacing-sm: 0.5rem;
-  --spacing-md: 1rem;
-  --spacing-lg: 1.5rem;
-  --spacing-xl: 2rem;
-  --spacing-2xl: 3rem;
-
-  /* Border Radius */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
-  --radius-full: 9999px;
-
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-card: 0 8px 24px rgba(149, 157, 165, 0.1);
+  img {
+    max-width: 100%;
+    display: block;
+  }
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+@layer components {
+  .container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
 
-body {
-  font-family: var(--font-body);
-  background-color: var(--color-background);
-  color: var(--color-text-main);
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-}
+  /* Form styles that are used globally */
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-heading);
-  color: var(--color-primary-dark);
-  line-height: 1.2;
-  font-weight: 700;
-}
+  .form-label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1A1A1A;
+    margin-bottom: 0.25rem;
+    margin-left: 4px;
+  }
 
-button {
-  font-family: var(--font-body);
-  cursor: pointer;
-  border: none;
-  outline: none;
-}
+  .form-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #f0f0f0;
+    border-radius: 12px;
+    background-color: #fcfcfc;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    outline: none;
+    color: #1A1A1A;
+  }
 
-a {
-  text-decoration: none;
-  color: inherit;
-}
+  .form-input:focus {
+    border-color: #2E7D32;
+    background-color: white;
+    box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.1);
+  }
 
-img {
-  max-width: 100%;
-  display: block;
-}
+  .form-input::placeholder {
+    color: #aaa;
+  }
 
-/* Utility Classes */
-.container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 var(--spacing-md);
-}
+  textarea.form-input {
+    resize: none;
+    min-height: 120px;
+  }
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-sm) var(--spacing-lg);
-  border-radius: var(--radius-full);
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
+  /* Button base styles */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1.5rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+    outline: none;
+  }
 
-.btn-primary {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
-  color: white;
-  box-shadow: var(--shadow-md);
-}
+  .btn-primary {
+    background: linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%);
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
 
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
-
-.btn-secondary {
-  background-color: white;
-  color: var(--color-primary);
-  border: 2px solid var(--color-primary);
-}
-
-.text-gradient {
-  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* Form Styles */
-.form-group {
-  margin-bottom: var(--spacing-lg);
-}
-
-.form-label {
-  display: block;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--color-text-main);
-  margin-bottom: var(--spacing-xs);
-  margin-left: 4px;
-}
-
-.form-input {
-  width: 100%;
-  padding: 14px 16px;
-  border: 2px solid #f0f0f0;
-  border-radius: var(--radius-md);
-  background-color: #fcfcfc;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  outline: none;
-  color: var(--color-text-main);
-}
-
-.form-input:focus {
-  border-color: var(--color-primary);
-  background-color: white;
-  box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.1);
-}
-
-.form-input::placeholder {
-  color: #aaa;
-}
-
-textarea.form-input {
-  resize: none;
-  min-height: 120px;
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
 }

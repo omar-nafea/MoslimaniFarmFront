@@ -3,7 +3,6 @@ import ProductCard from '../components/UI/ProductCard';
 import TestimonialCard from '../components/UI/TestimonialCard';
 import { testimonials } from '../data/products';
 import { productService } from '../services/api';
-import './Products.css';
 import { useLanguage } from '../context/LanguageContext';
 import { Loader2, AlertCircle } from 'lucide-react';
 
@@ -33,7 +32,9 @@ const Products = () => {
         price: parseFloat(product.price),
         unit: product.unit,
         unitAr: product.unit_ar || product.unit,
-        image: product.image_url || '/placeholder-product.jpg',
+        image: product.image_url
+          ? `http://127.0.0.1:8000/storage/${product.image_url}`
+          : '/placeholder-product.jpg',
         season: 'current' // All active products are considered current
       }));
 
@@ -48,8 +49,8 @@ const Products = () => {
 
   if (loading) {
     return (
-      <div className="products-page">
-        <div className="container section">
+      <div>
+        <div className="container py-2xl">
           <div className="flex justify-center items-center py-20">
             <Loader2 size={48} className="animate-spin text-brand-green" />
           </div>
@@ -60,8 +61,8 @@ const Products = () => {
 
   if (error) {
     return (
-      <div className="products-page">
-        <div className="container section">
+      <div>
+        <div className="container py-2xl">
           <div className="flex flex-col items-center justify-center py-20">
             <AlertCircle size={48} className="text-red-500 mb-4" />
             <p className="text-red-600 text-lg mb-4">{error}</p>
@@ -78,13 +79,13 @@ const Products = () => {
   }
 
   return (
-    <div className="products-page">
-      <div className="container section">
-        <h1 className="page-title">{t('products.title')}</h1>
-        <p className="page-subtitle">{t('products.subtitle')}</p>
+    <div>
+      <div className="container py-2xl">
+        <h1 className="text-4xl text-center mb-xs text-brand-green-dark font-heading font-bold">{t('products.title')}</h1>
+        <p className="text-center text-gray-600 mb-xl">{t('products.subtitle')}</p>
 
         {products.length > 0 ? (
-          <div className="products-grid">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.map(product => (
               <ProductCard key={product.id} product={product} />
             ))}
@@ -98,10 +99,10 @@ const Products = () => {
         )}
       </div>
 
-      <div className="section testimonials-section">
+      <div className="py-2xl bg-brand-surface-alt">
         <div className="container">
-          <h2 className="section-title text-center">{t('products.favorites')}</h2>
-          <div className="testimonials-grid">
+          <h2 className="text-3xl text-center mb-lg text-brand-green-dark font-heading font-bold">{t('products.favorites')}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {testimonials.map(testimonial => (
               <TestimonialCard key={testimonial.id} testimonial={testimonial} />
             ))}

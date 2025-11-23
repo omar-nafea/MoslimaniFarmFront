@@ -13,7 +13,6 @@ import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
-import './App.css';
 
 function App() {
   return (
@@ -21,9 +20,9 @@ function App() {
       <AuthProvider>
         <CartProvider>
           <Router>
-            <div className="app">
+            <div className="flex flex-col min-h-screen">
               <Navbar />
-              <main className="main-content">
+              <main className="flex-grow">
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/products" element={<Products />} />

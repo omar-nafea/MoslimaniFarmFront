@@ -1,7 +1,6 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
 import Button from './Button';
-import './ProductCard.css';
 import { useCart } from '../../context/CartContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
@@ -24,25 +23,29 @@ const ProductCard = ({ product }) => {
   };
 
   return (
-    <div className="product-card group relative overflow-hidden rounded-xl bg-white shadow-md transition-all hover:shadow-xl">
-      <div className="product-image-container relative aspect-square overflow-hidden">
-        <img src={image} alt={displayName} className="product-image h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+    <div className="bg-white rounded-lg overflow-hidden shadow-sm transition-all duration-300 flex flex-col h-full hover:-translate-y-1 hover:shadow-card group">
+      <div className="relative pt-[75%] overflow-hidden">
+        <img
+          src={image}
+          alt={displayName}
+          className="absolute top-0 left-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
         <button
           onClick={handleAddToCart}
-          className="quick-add-btn absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-white text-green-700 shadow-lg transition-transform hover:scale-110 hover:bg-green-50"
+          className="absolute bottom-2 right-sm w-10 h-10 rounded-full bg-white text-brand-green flex items-center justify-center shadow-md translate-y-5 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 hover:bg-brand-green hover:text-white"
           aria-label="Add to cart"
         >
           <Plus size={20} />
         </button>
       </div>
-      <div className="product-content p-4">
-        <h3 className="product-title mb-1 text-lg font-bold text-gray-900">{displayName}</h3>
-        <p className="product-description mb-3 text-sm text-gray-500 line-clamp-2">{displayDescription}</p>
-        <div className="product-footer flex items-center justify-between">
-          <span className="product-price text-lg font-bold text-green-700">
-            {price} {t('products.price')} <span className="product-unit text-sm font-normal text-gray-500">/ {displayUnit}</span>
+      <div className="p-4 flex flex-col flex-grow">
+        <h3 className="text-xl mb-xs text-gray-900 font-heading font-bold">{displayName}</h3>
+        <p className="text-sm text-gray-600 mb-md leading-snug line-clamp-2">{displayDescription}</p>
+        <div className="mt-auto flex items-center justify-between">
+          <span className="font-heading font-bold text-lg text-brand-green-dark">
+            {price} {t('products.price')} <span className="text-xs font-normal text-gray-400">/ {displayUnit}</span>
           </span>
-          <Button variant="primary" className="buy-btn" onClick={(e) => {
+          <Button variant="primary" className="px-md py-xs text-sm" onClick={(e) => {
             e.preventDefault();
             addToCart(product);
             navigate('/checkout');

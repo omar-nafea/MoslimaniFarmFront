@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Phone, Mail, MapPin, Send } from 'lucide-react';
 import Button from '../components/UI/Button';
-import './Contact.css';
 import { useLanguage } from '../context/LanguageContext';
 
 const Contact = () => {
@@ -24,45 +23,48 @@ const Contact = () => {
   };
 
   return (
-    <div className="contact-page">
-      <div className="container section">
-        <div className="contact-header text-center mb-8">
-          <h1 className="page-title">{t('contact.title')}</h1>
-          <p className="page-subtitle">{t('contact.subtitle')}</p>
+    <div className="py-2xl min-h-[80vh] bg-brand-surface-alt">
+      <div className="container py-2xl">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-heading font-bold text-brand-green-dark mb-sm">{t('contact.title')}</h1>
+          <p className="text-gray-600">{t('contact.subtitle')}</p>
         </div>
 
-        <div className="contact-container">
-          <form className="contact-form" onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label htmlFor="name">{t('contact.name')}</label>
+        <div className="max-w-[600px] mx-auto">
+          <form className="bg-white p-8 rounded-lg shadow-md" onSubmit={handleSubmit}>
+            <div className="mb-lg">
+              <label htmlFor="name" className="block mb-xs font-medium text-gray-900">{t('contact.name')}</label>
               <input
                 type="text"
                 id="name"
                 value={formData.name}
                 onChange={handleChange}
                 placeholder={t('contact.name')}
+                className="w-full p-4 border border-gray-300 rounded-md font-body text-base transition-colors focus:border-brand-green focus:outline-none"
                 required
               />
             </div>
-            <div className="form-group">
-              <label htmlFor="phone">{t('contact.phone')}</label>
+            <div className="mb-lg">
+              <label htmlFor="phone" className="block mb-xs font-medium text-gray-900">{t('contact.phone')}</label>
               <input
                 type="tel"
                 id="phone"
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder={t('contact.phone')}
+                className="w-full p-4 border border-gray-300 rounded-md font-body text-base transition-colors focus:border-brand-green focus:outline-none"
                 required
               />
             </div>
-            <div className="form-group">
-              <label htmlFor="message">{t('contact.message')}</label>
+            <div className="mb-lg">
+              <label htmlFor="message" className="block mb-xs font-medium text-gray-900">{t('contact.message')}</label>
               <textarea
                 id="message"
                 rows="5"
                 value={formData.message}
                 onChange={handleChange}
                 placeholder={t('contact.message')}
+                className="w-full p-4 border border-gray-300 rounded-md font-body text-base transition-colors focus:border-brand-green focus:outline-none"
                 required
               ></textarea>
             </div>
@@ -71,9 +73,9 @@ const Contact = () => {
             </Button>
           </form>
 
-          <div className="contact-direct">
-            <p>{t('contact.orCall')}</p>
-            <a href="tel:+201557285489" className="phone-link">
+          <div className="mt-xl text-center border-t border-gray-200 pt-lg">
+            <p className="mb-sm text-gray-600 text-sm">{t('contact.orCall')}</p>
+            <a href="tel:+201557285489" className="inline-flex items-center gap-2 font-semibold text-brand-green-dark text-lg">
               <Phone size={20} />
               +20 155 728 5489
             </a>

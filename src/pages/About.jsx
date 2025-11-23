@@ -1,49 +1,53 @@
 import React from 'react';
 import farmHero from '../assets/images/farm-hero.jpg';
-import './About.css';
+import { useLanguage } from '../context/LanguageContext';
 
 const About = () => {
+  const { t } = useLanguage();
+
   return (
-    <div className="about-page">
-      <section className="about-hero">
-        <img src={farmHero} alt="Moslimani Farm" className="about-hero-img" />
-        <div className="about-hero-content">
-          <h1>Our Story</h1>
-          <p>Cultivating nature's best since 1995.</p>
+    <div>
+      <section className="relative h-[400px] flex items-center justify-center text-white text-center">
+        <img
+          src={farmHero}
+          alt="Moslimani Farm"
+          className="absolute top-0 left-0 w-full h-full object-cover -z-10 brightness-[0.6]"
+        />
+        <div>
+          <h1 className="text-5xl md:text-6xl text-white mb-sm font-heading font-bold">{t('about.title')}</h1>
+          <p className="text-xl md:text-2xl font-light">{t('about.subtitle')}</p>
         </div>
       </section>
 
-      <div className="container about-content">
-        <section className="about-section">
-          <h2>Who We Are</h2>
-          <p>
-            Moslimani Farm is a family-owned business dedicated to growing the finest fruits in the region.
-            What started as a small passion project has grown into a thriving farm that serves thousands of happy customers.
+      <div className="container max-w-[800px] py-2xl px-md">
+        <section className="mb-2xl">
+          <h2 className="mb-md text-brand-green-dark font-heading font-bold text-3xl">{t('about.whoWeAre')}</h2>
+          <p className="text-lg text-gray-600 leading-relaxed">
+            {t('about.whoWeAreText')}
           </p>
         </section>
 
-        <section className="about-section">
-          <h2>Our Mission</h2>
-          <p>
-            We believe that everyone deserves access to fresh, chemical-free produce. Our mission is to bridge the gap between
-            the farm and your table, ensuring that you get the freshest fruits within 24 hours of harvest.
+        <section className="mb-2xl">
+          <h2 className="mb-md text-brand-green-dark font-heading font-bold text-3xl">{t('about.ourMission')}</h2>
+          <p className="text-lg text-gray-600 leading-relaxed">
+            {t('about.ourMissionText')}
           </p>
         </section>
 
-        <section className="about-section">
-          <h2>Why Farm-to-Home?</h2>
-          <div className="features-grid">
-            <div className="feature-card">
-              <h3>Peak Freshness</h3>
-              <p>Fruits are picked only when they are perfectly ripe, ensuring maximum flavor and nutrition.</p>
+        <section className="mb-2xl">
+          <h2 className="mb-md text-brand-green-dark font-heading font-bold text-3xl">{t('about.whyFarmToHome')}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-lg">
+            <div className="bg-white p-6 rounded-md shadow-sm text-center">
+              <h3 className="text-brand-orange mb-sm font-heading font-bold text-xl">{t('about.peakFreshness')}</h3>
+              <p className="text-sm">{t('about.peakFreshnessText')}</p>
             </div>
-            <div className="feature-card">
-              <h3>Sustainable</h3>
-              <p>By cutting out the middleman, we reduce food miles and waste, making our process eco-friendly.</p>
+            <div className="bg-white p-6 rounded-md shadow-sm text-center">
+              <h3 className="text-brand-orange mb-sm font-heading font-bold text-xl">{t('about.sustainable')}</h3>
+              <p className="text-sm">{t('about.sustainableText')}</p>
             </div>
-            <div className="feature-card">
-              <h3>Community</h3>
-              <p>Supporting local farmers helps build a stronger, healthier community for everyone.</p>
+            <div className="bg-white p-6 rounded-md shadow-sm text-center">
+              <h3 className="text-brand-orange mb-sm font-heading font-bold text-xl">{t('about.community')}</h3>
+              <p className="text-sm">{t('about.communityText')}</p>
             </div>
           </div>
         </section>

@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
 import { CheckCircle, Trash2, Package, CreditCard, Loader2 } from 'lucide-react';
 import Button from '../components/UI/Button';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { orderService } from '../services/api';
-import './Checkout.css';
 
+
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 // Validation Schema
 const getValidationSchema = (language) => Yup.object({
   name: Yup.string()
@@ -41,10 +41,10 @@ const getValidationSchema = (language) => Yup.object({
 const Checkout = () => {
   const navigate = useNavigate();
   const { cart, clearCart, removeFromCart } = useCart();
-  const { t, language } = useLanguage();
   const { user } = useAuth();
 
   const [items, setItems] = useState([]);
+  const { t, language } = useLanguage();
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderData, setOrderData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -134,8 +134,8 @@ const Checkout = () => {
 
   if (orderPlaced && orderData) {
     return (
-      <div className="success-page">
-        <div className="success-container">
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <div className="text-center bg-white p-12 rounded-lg shadow-md max-w-[500px] mx-auto">
           <div className="flex justify-center mb-6">
             <div className="bg-green-100 p-4 rounded-full">
               <CheckCircle size={64} className="text-green-600" />
@@ -161,7 +161,7 @@ const Checkout = () => {
   }
 
   return (
-    <div className="checkout-page">
+    <div className="py-2xl bg-brand-surface-alt min-h-[80vh]">
       <div className="container">
         <div className="mb-8">
           <h1 className="text-4xl md:text-5xl font-heading font-bold text-brand-green-dark mb-2">
@@ -176,59 +176,60 @@ const Checkout = () => {
           </div>
         )}
 
-        <div className="checkout-grid">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-8 mt-xl">
           {/* Order Summary */}
-          <div className="order-summary">
-            <h2>{t('checkout.yourOrder')}</h2>
+          <div className="bg-white p-6 rounded-lg shadow-sm h-fit">
+            <h2 className="mb-lg pb-sm border-b border-gray-200 font-heading font-bold text-2xl">{t('checkout.yourOrder')}</h2>
 
             {items.length > 0 ? (
               <div>
                 <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
                   {items.map((item, index) => (
-                    <div key={index} className="selected-product">
+                    <div key={index} className="flex gap-4 p-4 bg-gray-50 rounded-md border border-transparent transition-all duration-200 mb-md hover:bg-white hover:border-brand-green-light hover:shadow-sm">
                       <img
                         src={item.image}
                         alt={language === 'ar' ? item.nameAr : item.name}
+                        className="w-[70px] h-[70px] rounded-md object-cover shadow-sm"
                       />
-                      <div className="selected-details">
+                      <div className="flex-1 flex flex-col justify-center">
                         <div className="flex items-center justify-between">
-                          <h3>{language === 'ar' ? item.nameAr : item.name}</h3>
+                          <h3 className="text-base font-bold text-gray-900 mb-0.5">{language === 'ar' ? item.nameAr : item.name}</h3>
                           <button
                             onClick={() => removeFromCart(item.id)}
-                            className="remove-btn"
+                            className="flex items-center justify-center w-7 h-7 rounded-md text-red-500 bg-red-50 transition-all duration-200 hover:bg-red-500 hover:text-white"
                             title="Remove item"
                           >
                             <Trash2 size={14} />
                           </button>
                         </div>
-                        <p className="price">
+                        <p className="text-sm text-gray-600 font-medium">
                           {item.price} {t('products.price')} / {language === 'ar' ? item.unitAr : item.unit}
                         </p>
-                        <div className="quantity-controls">
-                          <button className="qty-btn" onClick={() => handleQuantityChange(index, item.quantity + 1)}>+</button>
+                        <div className="flex items-center gap-2 mt-2">
+                          <button className="w-7 h-7 rounded-md text-white bg-brand-green transition-all duration-200 hover:bg-brand-green-dark" onClick={() => handleQuantityChange(index, item.quantity + 1)}>+</button>
                           <input
                             type="text"
                             value={item.quantity}
                             onChange={(e) => handleQuantityChange(index, parseInt(e.target.value) || 1)}
-                            className="qty-input"
+                            className="w-[100px] p-1 border border-gray-200 rounded-md text-center text-sm font-semibold focus:border-brand-green focus:outline-none"
                           />
-                          <button className="qty-btn" onClick={() => handleQuantityChange(index, item.quantity - 1)}>-</button>
+                          <button className="w-7 h-7 rounded-md text-white bg-brand-green transition-all duration-200 hover:bg-brand-green-dark" onClick={() => handleQuantityChange(index, item.quantity - 1)}>-</button>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="order-total">
-                  <div className="total-row">
+                <div className="border-t border-gray-200 pt-md">
+                  <div className="flex justify-between mb-sm text-gray-600">
                     <span>{t('checkout.subtotal')}</span>
                     <span>{totalAmount} {t('products.price')}</span>
                   </div>
-                  <div className="total-row">
+                  <div className="flex justify-between mb-sm text-gray-600">
                     <span>{t('checkout.delivery')}</span>
                     <span>{shippingCost} {t('products.price')}</span>
                   </div>
-                  <div className="total-row final">
+                  <div className="flex justify-between text-gray-900 font-bold text-xl mt-md pt-sm border-t-2 border-dashed border-gray-200">
                     <span>{t('checkout.total')}</span>
                     <span>{finalTotal} {t('products.price')}</span>
                   </div>
@@ -248,11 +249,8 @@ const Checkout = () => {
           </div>
 
           {/* Delivery Details */}
-          <div className="checkout-form-container">
-            <div className="flex items-start space-x-4 mb-6">
-              <h2>{t('checkout.deliveryDetails')}</h2>
-              <Package className="text-white px-2 py-1" size={24} />
-            </div>
+          <div className="bg-white p-6 rounded-lg shadow-sm h-fit">
+            <h2 className="mb-lg pb-sm border-b border-gray-200 font-heading font-bold text-2xl">{t('checkout.deliveryDetails')}</h2>
 
             <form onSubmit={formik.handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -360,7 +358,7 @@ const Checkout = () => {
               <Button
                 type="submit"
                 variant="gradient"
-                className="place-order-btn"
+                className="w-full"
                 disabled={items.length === 0 || loading || !formik.isValid}
               >
                 {loading ? (
@@ -369,8 +367,8 @@ const Checkout = () => {
                     {language === 'ar' ? 'جاري الإرسال...' : 'Submitting...'}
                   </div>
                 ) : (
-                  <div className="place-order">
-                    <CreditCard size={22} className="mr-2" />
+                  <div className="flex items-center gap-2">
+                    <CreditCard size={22} />
                     {t('checkout.placeOrder')}
                   </div>
                 )}
