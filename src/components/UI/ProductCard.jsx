@@ -4,11 +4,13 @@ import Button from './Button';
 import './ProductCard.css';
 import { useCart } from '../../context/CartContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useNavigate } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
   const { id, name, nameAr, description, descriptionAr, price, image, unit = 'kg', unitAr = 'كجم' } = product;
   const { addToCart } = useCart();
   const { t, language } = useLanguage();
+  const navigate = useNavigate();
 
   const displayName = language === 'ar' ? nameAr : name;
   const displayDescription = language === 'ar' ? descriptionAr : description;
@@ -43,7 +45,7 @@ const ProductCard = ({ product }) => {
           <Button variant="primary" className="buy-btn" onClick={(e) => {
             e.preventDefault();
             addToCart(product);
-            window.location.href = '/checkout';
+            navigate('/checkout');
           }}>{t('products.buyNow')}</Button>
         </div>
       </div>

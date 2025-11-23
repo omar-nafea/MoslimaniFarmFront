@@ -82,3 +82,32 @@
   color: var(--color-primary-dark);
   font-size: 1.1rem;
 }
+
+.form-input {
+  margin-bottom: var(--spacing-lg);
+}
+
+
+.place-order {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.place-order-btn {
+  width: 100%;
+}
+
+
+
+.place-order-btn:hover {
+  background-color: var(--color-primary-dark);
+  color: #fff;
+
+}
+
+.delivery-details {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}

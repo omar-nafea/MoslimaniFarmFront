@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import Button from '../components/UI/Button';
 import { Mail, Lock, User, Phone, Loader2 } from 'lucide-react';
+import './login.css';
 
 const Signup = () => {
   const { signup } = useAuth();
@@ -46,8 +47,8 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-cream via-white to-brand-surface-alt py-12 px-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-brand-lg p-8 border border-gray-100">
+    <div className="auth-container">
+      <div className="auth-nested-container">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-heading font-bold text-brand-green-dark mb-2">
             {t('auth.signupTitle')}
@@ -72,7 +73,7 @@ const Signup = () => {
               {t('auth.name')}
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+              <div className="absolute top-4 left-2  pl-4 flex items-center pointer-events-none text-gray-400">
                 <User size={20} />
               </div>
               <input
@@ -82,7 +83,7 @@ const Signup = () => {
                 value={formData.name}
                 onChange={handleChange}
                 className="form-input !pl-11"
-                placeholder="John Doe"
+                placeholder="mohamed ali"
               />
             </div>
           </div>

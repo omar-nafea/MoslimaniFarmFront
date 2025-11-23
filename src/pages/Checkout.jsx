@@ -1,20 +1,46 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 import { CheckCircle, Trash2, Package, CreditCard, Loader2 } from 'lucide-react';
 import Button from '../components/UI/Button';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
-import { addressService, orderService } from '../services/api';
+import { orderService } from '../services/api';
 import './Checkout.css';
 
-const Checkout = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const queryParams = new URLSearchParams(location.search);
-  const productId = queryParams.get('product');
+// Validation Schema
+const getValidationSchema = (language) => Yup.object({
+  name: Yup.string()
+    .min(3, language === 'ar' ? 'الاسم يجب أن يكون 3 أحرف على الأقل' : 'Name must be at least 3 characters')
+    .required(language === 'ar' ? 'الاسم مطلوب' : 'Name is required'),
 
-  const { cart, getCartTotal, clearCart, removeFromCart } = useCart();
+  phone: Yup.string()
+    .matches(
+      /^(01|201|\+201)[0-9]{9}$/,
+      language === 'ar'
+        ? 'رقم الهاتف يجب أن يكون 11 رقم ويبدأ بـ 01 أو 201 أو +201'
+        : 'Phone must be 11 digits and start with 01, 201, or +201'
+    )
+    .required(language === 'ar' ? 'رقم الهاتف مطلوب' : 'Phone number is required'),
+
+  addressLine1: Yup.string()
+    .min(5, language === 'ar' ? 'العنوان يجب أن يكون 5 أحرف على الأقل' : 'Address must be at least 5 characters')
+    .required(language === 'ar' ? 'العنوان مطلوب' : 'Address is required'),
+
+  addressLine2: Yup.string(),
+
+  city: Yup.string()
+    .min(2, language === 'ar' ? 'المدينة يجب أن تكون حرفين على الأقل' : 'City must be at least 2 characters')
+    .required(language === 'ar' ? 'المدينة مطلوبة' : 'City is required'),
+
+  notes: Yup.string()
+});
+
+const Checkout = () => {
+  const navigate = useNavigate();
+  const { cart, clearCart, removeFromCart } = useCart();
   const { t, language } = useLanguage();
   const { user } = useAuth();
 
@@ -23,16 +49,6 @@ const Checkout = () => {
   const [orderData, setOrderData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  // Form fields
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    addressLine1: '',
-    addressLine2: '',
-    city: '',
-    notes: ''
-  });
 
   useEffect(() => {
     // Check if user is authenticated
@@ -46,12 +62,67 @@ const Checkout = () => {
   }, [cart, user, navigate]);
 
   const totalAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shippingCost = 50; // Fixed shipping cost matching backend
+  const shippingCost = 50;
   const finalTotal = totalAmount + shippingCost;
 
-  const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const formik = useFormik({
+    initialValues: {
+      name: '',
+      phone: '',
+      addressLine1: '',
+      addressLine2: '',
+      city: '',
+      notes: ''
+    },
+    validationSchema: getValidationSchema(language),
+    onSubmit: async (values) => {
+      setError('');
+      setLoading(true);
+
+      try {
+        // Prepare order items
+        const orderItems = items.map(item => ({
+          product_id: item.id,
+          quantity: item.quantity
+        }));
+
+        // Create order with address fields directly
+        const orderPayload = {
+          items: orderItems,
+          phone: values.phone,
+          notes: values.notes || null,
+          address_street: values.addressLine1,
+          address_building: values.addressLine2 || '',
+          address_city: values.city
+        };
+
+        const orderResponse = await orderService.createOrder(orderPayload);
+
+        // Success!
+        setOrderData(orderResponse.data);
+        setOrderPlaced(true);
+        clearCart();
+
+      } catch (err) {
+        console.error('Order submission error:', err);
+
+        let errorMessage = language === 'ar'
+          ? 'حدث خطأ أثناء إرسال الطلب. يرجى المحاولة مرة أخرى.'
+          : 'Failed to submit order. Please try again.';
+
+        if (err.response?.data?.message) {
+          errorMessage = err.response.data.message;
+        } else if (err.response?.data) {
+          const errors = Object.values(err.response.data).flat();
+          errorMessage = errors.join(', ');
+        }
+
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    }
+  });
 
   const handleQuantityChange = (index, newQty) => {
     if (newQty < 1) return;
@@ -59,66 +130,6 @@ const Checkout = () => {
     const newItems = [...items];
     newItems[index].quantity = newQty;
     setItems(newItems);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      // Step 1: Create address
-      const addressData = {
-        line1: formData.addressLine1,
-        line2: formData.addressLine2 || null,
-        city: formData.city,
-        country: 'Egypt',
-        is_primary: false
-      };
-
-      const addressResponse = await addressService.createAddress(addressData);
-      const createdAddress = addressResponse.data;
-
-      // Step 2: Prepare order items
-      const orderItems = items.map(item => ({
-        product_id: item.id,
-        quantity: item.quantity
-      }));
-
-      // Step 3: Create order
-      const orderPayload = {
-        address_id: createdAddress.id,
-        items: orderItems,
-        phone: formData.phone,
-        notes: formData.notes || null
-      };
-
-      const orderResponse = await orderService.createOrder(orderPayload);
-
-      // Success!
-      setOrderData(orderResponse.data);
-      setOrderPlaced(true);
-      clearCart();
-
-    } catch (err) {
-      console.error('Order submission error:', err);
-
-      let errorMessage = language === 'ar'
-        ? 'حدث خطأ أثناء إرسال الطلب. يرجى المحاولة مرة أخرى.'
-        : 'Failed to submit order. Please try again.';
-
-      if (err.response?.data?.message) {
-        errorMessage = err.response.data.message;
-      } else if (err.response?.data) {
-        // Handle validation errors
-        const errors = Object.values(err.response.data).flat();
-        errorMessage = errors.join(', ');
-      }
-
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
   };
 
   if (orderPlaced && orderData) {
@@ -137,9 +148,6 @@ const Checkout = () => {
             {t('checkout.thankYou')}
           </p>
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <p className="text-sm text-gray-600">
-              {language === 'ar' ? 'رقم الطلب' : 'Order Number'}: <span className="font-bold text-brand-green">#{orderData.id}</span>
-            </p>
             <p className="text-sm text-gray-600 mt-2">
               {language === 'ar' ? 'الإجمالي' : 'Total'}: <span className="font-bold">{orderData.total} {t('products.price')}</span>
             </p>
@@ -155,7 +163,6 @@ const Checkout = () => {
   return (
     <div className="checkout-page">
       <div className="container">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl md:text-5xl font-heading font-bold text-brand-green-dark mb-2">
             {t('checkout.title')}
@@ -176,7 +183,6 @@ const Checkout = () => {
 
             {items.length > 0 ? (
               <div>
-                {/* Items */}
                 <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
                   {items.map((item, index) => (
                     <div key={index} className="selected-product">
@@ -213,7 +219,6 @@ const Checkout = () => {
                   ))}
                 </div>
 
-                {/* Totals */}
                 <div className="order-total">
                   <div className="total-row">
                     <span>{t('checkout.subtotal')}</span>
@@ -249,7 +254,7 @@ const Checkout = () => {
               <Package className="text-white px-2 py-1" size={24} />
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={formik.handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div className="form-group">
                   <label htmlFor="name" className="form-label">
@@ -259,12 +264,15 @@ const Checkout = () => {
                     type="text"
                     id="name"
                     name="name"
-                    required
-                    value={formData.name}
-                    onChange={handleInputChange}
+                    value={formik.values.name}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
                     placeholder="Ahmed Ali"
-                    className="form-input"
+                    className={`form-input ${formik.touched.name && formik.errors.name ? 'border-red-500' : ''}`}
                   />
+                  {formik.touched.name && formik.errors.name && (
+                    <div className="text-red-500 text-sm mt-1">{formik.errors.name}</div>
+                  )}
                 </div>
 
                 <div className="form-group">
@@ -275,12 +283,15 @@ const Checkout = () => {
                     type="tel"
                     id="phone"
                     name="phone"
-                    required
-                    value={formData.phone}
-                    onChange={handleInputChange}
+                    value={formik.values.phone}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
                     placeholder="01xxxxxxxxx"
-                    className="form-input"
+                    className={`form-input ${formik.touched.phone && formik.errors.phone ? 'border-red-500' : ''}`}
                   />
+                  {formik.touched.phone && formik.errors.phone && (
+                    <div className="text-red-500 text-sm mt-1">{formik.errors.phone}</div>
+                  )}
                 </div>
               </div>
 
@@ -293,31 +304,40 @@ const Checkout = () => {
                   type="text"
                   id="addressLine1"
                   name="addressLine1"
-                  required
-                  value={formData.addressLine1}
-                  onChange={handleInputChange}
+                  value={formik.values.addressLine1}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
                   placeholder={language === 'ar' ? 'الشارع والمنطقة' : 'Street and Area'}
-                  className="form-input mb-3"
+                  className={`form-input ${formik.touched.addressLine1 && formik.errors.addressLine1 ? 'border-red-500' : ''}`}
                 />
+                {formik.touched.addressLine1 && formik.errors.addressLine1 && (
+                  <div className="text-red-500 text-sm mt-1">{formik.errors.addressLine1}</div>
+                )}
+
                 <input
                   type="text"
                   id="addressLine2"
                   name="addressLine2"
-                  value={formData.addressLine2}
-                  onChange={handleInputChange}
+                  value={formik.values.addressLine2}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
                   placeholder={language === 'ar' ? 'رقم الشقة، الدور (اختياري)' : 'Apartment, Floor (optional)'}
-                  className="form-input mb-3"
+                  className="form-input"
                 />
+
                 <input
                   type="text"
                   id="city"
                   name="city"
-                  required
-                  value={formData.city}
-                  onChange={handleInputChange}
+                  value={formik.values.city}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
                   placeholder={language === 'ar' ? 'المدينة' : 'City'}
-                  className="form-input"
+                  className={`form-input ${formik.touched.city && formik.errors.city ? 'border-red-500' : ''}`}
                 />
+                {formik.touched.city && formik.errors.city && (
+                  <div className="text-red-500 text-sm mt-1">{formik.errors.city}</div>
+                )}
               </div>
 
               {/* Notes */}
@@ -329,8 +349,9 @@ const Checkout = () => {
                   id="notes"
                   name="notes"
                   rows="3"
-                  value={formData.notes}
-                  onChange={handleInputChange}
+                  value={formik.values.notes}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
                   placeholder={language === 'ar' ? 'أي تعليمات خاصة للتوصيل' : 'Any special delivery instructions'}
                   className="form-input"
                 ></textarea>
@@ -339,8 +360,8 @@ const Checkout = () => {
               <Button
                 type="submit"
                 variant="gradient"
-                className="w-full text-lg py-4 font-bold shadow-lg hover:shadow-xl transition-all"
-                disabled={items.length === 0 || loading}
+                className="place-order-btn"
+                disabled={items.length === 0 || loading || !formik.isValid}
               >
                 {loading ? (
                   <div className="flex items-center justify-center gap-2">
@@ -348,10 +369,10 @@ const Checkout = () => {
                     {language === 'ar' ? 'جاري الإرسال...' : 'Submitting...'}
                   </div>
                 ) : (
-                  <>
+                  <div className="place-order">
                     <CreditCard size={22} className="mr-2" />
                     {t('checkout.placeOrder')}
-                  </>
+                  </div>
                 )}
               </Button>
             </form>

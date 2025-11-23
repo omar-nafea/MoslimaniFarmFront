@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import Products from '../pages/Products';
 import { ArrowRight } from 'lucide-react';
 import Button from '../components/UI/Button';
 import ProductCard from '../components/UI/ProductCard';
@@ -36,32 +37,9 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Seasonal Products Section */}
-      <section className="section seasonal-section">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">{t('home.seasonalTitle')}</h2>
-            <Link to="/products" className="view-all-link">{t('home.viewAll')}</Link>
-          </div>
-          <div className="products-grid">
-            {seasonalProducts.map(product => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Products Section */}
+      <Products />
 
-      {/* Testimonials Section */}
-      <section className="section testimonials-section">
-        <div className="container">
-          <h2 className="section-title text-center">{t('home.testimonialsTitle')}</h2>
-          <div className="testimonials-grid">
-            {testimonials.map(testimonial => (
-              <TestimonialCard key={testimonial.id} testimonial={testimonial} />
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Upcoming Season Section */}
       <section className="section upcoming-section">

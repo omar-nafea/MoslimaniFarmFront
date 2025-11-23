@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
 import { authService } from '../services/api';
 
 const AuthContext = createContext();
@@ -16,10 +17,10 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load user from localStorage on mount
+  // Load user from cookies on mount
   useEffect(() => {
     const initializeAuth = async () => {
-      const token = localStorage.getItem('token');
+      const token = Cookies.get('token');
       if (token) {
         try {
           // Verify token by fetching profile
@@ -28,8 +29,8 @@ export const AuthProvider = ({ children }) => {
           setIsAuthenticated(true);
         } catch (error) {
           console.error('Failed to fetch user profile:', error);
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+          Cookies.remove('token');
+          Cookies.remove('user');
         }
       }
       setIsLoading(false);
@@ -43,8 +44,9 @@ export const AuthProvider = ({ children }) => {
       const response = await authService.register(userData);
       const { user, access_token } = response.data;
 
-      localStorage.setItem('token', access_token);
-      localStorage.setItem('user', JSON.stringify(user));
+      // Store token in cookie (expires in 7 days)
+      Cookies.set('token', access_token, { expires: 7, sameSite: 'strict' });
+      Cookies.set('user', JSON.stringify(user), { expires: 7, sameSite: 'strict' });
 
       setUser(user);
       setIsAuthenticated(true);
@@ -64,8 +66,9 @@ export const AuthProvider = ({ children }) => {
       const response = await authService.login({ email, password });
       const { user, access_token } = response.data;
 
-      localStorage.setItem('token', access_token);
-      localStorage.setItem('user', JSON.stringify(user));
+      // Store token in cookie (expires in 7 days)
+      Cookies.set('token', access_token, { expires: 7, sameSite: 'strict' });
+      Cookies.set('user', JSON.stringify(user), { expires: 7, sameSite: 'strict' });
 
       setUser(user);
       setIsAuthenticated(true);
@@ -86,8 +89,8 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      Cookies.remove('token');
+      Cookies.remove('user');
       setUser(null);
       setIsAuthenticated(false);
     }

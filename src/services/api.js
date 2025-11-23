@@ -1,4 +1,5 @@
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
 const API_URL = 'http://127.0.0.1:8000/api/v1';
 
@@ -13,7 +14,7 @@ const api = axios.create({
 // Add a request interceptor to attach the token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = Cookies.get('token');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
@@ -23,6 +24,7 @@ api.interceptors.request.use(
     return Promise.reject(error);
   }
 );
+
 
 // Add a response interceptor to handle errors (e.g., 401 Unauthorized)
 api.interceptors.response.use(
@@ -36,26 +38,21 @@ api.interceptors.response.use(
 
       try {
         // Try to refresh the token
-        // Note: This assumes you have a refresh token endpoint that works with the current token
-        // If using JWT with a separate refresh token stored elsewhere, adjust accordingly.
-        // For simple JWT, we might just logout.
-        
-        // If your backend supports token refresh via a specific endpoint:
         const response = await axios.post(`${API_URL}/auth/refresh`, {}, {
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                'Authorization': `Bearer ${Cookies.get('token')}`
             }
         });
 
         if (response.data.access_token) {
-            localStorage.setItem('token', response.data.access_token);
+            Cookies.set('token', response.data.access_token, { expires: 7, sameSite: 'strict' });
             api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
             return api(originalRequest);
         }
       } catch (refreshError) {
         // If refresh fails, logout
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        Cookies.remove('token');
+        Cookies.remove('user');
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }
