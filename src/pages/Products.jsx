@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import ProductCard from '../components/UI/ProductCard';
-import TestimonialCard from '../components/UI/TestimonialCard';
-import { testimonials } from '../data/products';
 import { productService } from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
 import { Loader2, AlertCircle } from 'lucide-react';
@@ -97,17 +95,6 @@ const Products = () => {
             </p>
           </div>
         )}
-      </div>
-
-      <div className="py-2xl bg-brand-surface-alt">
-        <div className="container">
-          <h2 className="text-3xl text-center mb-lg text-brand-green-dark font-heading font-bold">{t('products.favorites')}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {testimonials.map(testimonial => (
-              <TestimonialCard key={testimonial.id} testimonial={testimonial} />
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );

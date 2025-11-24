@@ -1,71 +1,154 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Products from '../pages/Products';
-import { ArrowRight } from 'lucide-react';
+import Testimonials from '../components/Testimonials';
+import ComingProducts from '../components/ComingProducts';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import Button from '../components/UI/Button';
-import ProductCard from '../components/UI/ProductCard';
-import TestimonialCard from '../components/UI/TestimonialCard';
-import { products, testimonials } from '../data/products';
 import greenPath from '../assets/images/greenPath.jpeg';
+import pomegranate from '../assets/images/pomegranate.jpeg';
+import pomegranate2 from '../assets/images/path1.jpeg';
+import pomegranateTree from '../assets/images/pomogranateTree.jpeg';
 import { useLanguage } from '../context/LanguageContext';
+
 
 const Home = () => {
   const { t } = useLanguage();
-  const seasonalProducts = products.filter(p => p.season === 'current').slice(0, 6);
-  const upcomingProducts = products.filter(p => p.season === 'upcoming').slice(0, 3);
+  const [index, setIndex] = useState(0);
+  const [images, setImages] = useState([])
+  useEffect(() => {
+    const fetchHeroImages = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:8000/api/v1/hero-images');
+        const data = await response.json();
+        setImages(data);
+      } catch (error) {
+        console.error('Error fetching testimonials:', error);
+      }
+    };
 
+    fetchHeroImages();
+  }, []);
+
+  useEffect(() => {
+    const lastIndex = images.length - 1;
+    if (index < 0) {
+      setIndex(lastIndex);
+    }
+    if (index > lastIndex) {
+      setIndex(0);
+    }
+  }, [index]);
+
+  useEffect(() => {
+    let slider = setInterval(() => {
+      setIndex(index + 1);
+    }, 3000);
+    return () => clearInterval(slider);
+  }, [index]);
+
+  if (images.length === 0) {
+    return null;
+  }
   return (
     <div>
       {/* Hero Section */}
-      <section className="relative h-[80vh] min-h-[500px] flex items-center text-white overflow-hidden">
+      <section className="relative min-h-[94vh] flex items-center text-white overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full -z-10">
-          <img src={greenPath} alt="Moslimani Farm" className="w-full h-full object-cover" />
+          {/* Slider */}
+          <div className="w-full h-full relative">
+            {images.map((item, personIndex) => {
+              let position = "translate-x-full opacity-0";
+
+              if (personIndex === index) {
+                // Current slide - centered
+                position = "translate-x-0 opacity-100 z-10";
+              } else if (
+                personIndex === index - 1 ||
+                (index === 0 && personIndex === images.length - 1)
+              ) {
+                // Previous slide - left side
+                position = "-translate-x-full opacity-0";
+              }
+
+              return (
+                <div
+                  key={item.id}
+                  className={`absolute top-0 left-0 w-full h-full transition-all duration-700 ease-in-out ${position}`}
+                >
+                  <img
+                    src={item.image_path}
+                    alt="Farm view"
+                    className="w-full h-full md:object-contain object-cover"
+                  />
+                </div>
+              );
+            })}
+          </div>
+
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-black/30 to-black/60"></div>
         </div>
         <div className="container relative z-10 max-w-[800px] text-center mx-auto">
           <h1 className="font-hand text-6xl md:text-7xl mb-md text-brand-yellow drop-shadow-[2px_2px_4px_rgba(0,0,0,0.3)]">
             {t('hero.title')}
           </h1>
-          <p className="text-lg md:text-xl mb-xl leading-relaxed drop-shadow-[1px_1px_2px_rgba(0,0,0,0.3)]">
+          <p className="text-lg md:text-xl md:w-1/2 mx-auto  mb-xl leading-relaxed font-bold  drop-shadow-[1px_1px_2px_rgba(0,0,0,0.3)]">
             {t('hero.subtitle')}
           </p>
-          <Link to="/products">
-            <Button variant="primary" className="text-lg px-xl py-md" style={{ background: 'linear-gradient(to right, #DAA520, #228B22)' }}>
-              {t('hero.cta')} <ArrowRight size={20} style={{ marginInlineStart: '8px' }} />
+          <Link to="/products" className="text-lg font-bold px-xl py-md">
+            <Button style={{ background: 'linear-gradient(to right, #DAA520, #228B22)', fontWeight: 'bold' }}>
+              <ArrowRight size={20} /> {t('hero.cta')}
             </Button>
           </Link>
         </div>
-      </section>
+
+        {/* Navigation Controls */}
+        <div className="absolute bottom-8 left-0 right-0 z-20 flex items-center justify-center gap-4">
+          {/* Previous Button */}
+          <button
+            onClick={() => setIndex(index - 1)}
+            className="bg-white/20 hover:bg-white/30 backdrop-blur-sm p-2 rounded-full transition-all duration-300 hover:scale-110"
+            aria-label="Previous slide"
+          >
+            <ChevronLeft size={24} className="text-white" />
+          </button>
+
+          {/* Dot Indicators */}
+          <div className="flex gap-2">
+            {images.map((_, dotIndex) => (
+              <button
+                key={dotIndex}
+                onClick={() => setIndex(dotIndex)}
+                className={`transition-all duration-300 rounded-full ${dotIndex === index
+                    ? 'w-8 h-3 bg-brand-yellow'
+                    : 'w-3 h-3 bg-white/50 hover:bg-white/70'
+                  }`}
+                aria-label={`Go to slide ${dotIndex + 1}`}
+              />
+            ))}
+          </div>
+
+          {/* Next Button */}
+          <button
+            onClick={() => setIndex(index + 1)}
+            className="bg-white/20 hover:bg-white/30 backdrop-blur-sm p-2 rounded-full transition-all duration-300 hover:scale-110"
+            aria-label="Next slide"
+          >
+            <ChevronRight size={24} className="text-white" />
+          </button>
+        </div>
+      </section >
 
       {/* Products Section */}
       <Products />
 
-      {/* Upcoming Season Section */}
-      <section className="py-2xl">
-        <div className="container mb-5 md:mb-0">
-          <h2 className="text-3xl md:text-4xl mb-lg text-brand-green-dark font-heading font-bold inline-block">
-            {t('home.upcomingTitle')}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {upcomingProducts.map(product => (
-              <div key={product.id} className="bg-white rounded-md overflow-hidden shadow-sm flex flex-col">
-                <div className="h-[200px] overflow-hidden">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover opacity-80 grayscale-[30%] transition-all duration-300 hover:opacity-100 hover:grayscale-0 hover:scale-105"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="text-xl mb-xs text-gray-400 font-heading font-bold">{product.name}</h3>
-                  <p className="text-sm text-gray-600">{product.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    </div>
+      {/* Testimonials Section */}
+      <Testimonials />
+
+      {/* Coming Products Section */}
+      <ComingProducts />
+
+    </div >
   );
 };
 

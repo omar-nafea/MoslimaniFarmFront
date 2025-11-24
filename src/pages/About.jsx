@@ -15,7 +15,7 @@ const About = () => {
         />
         <div>
           <h1 className="text-5xl md:text-6xl text-white mb-sm font-heading font-bold">{t('about.title')}</h1>
-          <p className="text-xl md:text-2xl font-light">{t('about.subtitle')}</p>
+          <p className="text-xl md:text-2xl font-bold">{t('about.subtitle')}</p>
         </div>
       </section>
 
@@ -41,10 +41,7 @@ const About = () => {
               <h3 className="text-brand-orange mb-sm font-heading font-bold text-xl">{t('about.peakFreshness')}</h3>
               <p className="text-sm">{t('about.peakFreshnessText')}</p>
             </div>
-            <div className="bg-white p-6 rounded-md shadow-sm text-center">
-              <h3 className="text-brand-orange mb-sm font-heading font-bold text-xl">{t('about.sustainable')}</h3>
-              <p className="text-sm">{t('about.sustainableText')}</p>
-            </div>
+
             <div className="bg-white p-6 rounded-md shadow-sm text-center">
               <h3 className="text-brand-orange mb-sm font-heading font-bold text-xl">{t('about.community')}</h3>
               <p className="text-sm">{t('about.communityText')}</p>

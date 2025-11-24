@@ -18,10 +18,10 @@ const getValidationSchema = (language) => Yup.object({
 
   phone: Yup.string()
     .matches(
-      /^(01|201|\+201)[0-9]{9}$/,
+      /^(01)[0-9]{9}$/,
       language === 'ar'
-        ? 'رقم الهاتف يجب أن يكون 11 رقم ويبدأ بـ 01 أو 201 أو +201'
-        : 'Phone must be 11 digits and start with 01, 201, or +201'
+        ? 'رقم الهاتف يجب أن يكون 11 رقم ويبدأ بـ 01'
+        : 'Phone must be 11 digits and start with 01'
     )
     .required(language === 'ar' ? 'رقم الهاتف مطلوب' : 'Phone number is required'),
 
@@ -41,28 +41,22 @@ const getValidationSchema = (language) => Yup.object({
 const Checkout = () => {
   const navigate = useNavigate();
   const { cart, clearCart, removeFromCart } = useCart();
+  const { t, language } = useLanguage();
   const { user } = useAuth();
 
   const [items, setItems] = useState([]);
-  const { t, language } = useLanguage();
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderData, setOrderData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Check if user is authenticated
-    if (!user) {
-      navigate('/login?redirect=/checkout');
-      return;
-    }
-
     // Set items from cart
     setItems(cart);
-  }, [cart, user, navigate]);
+  }, [cart]);
 
   const totalAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shippingCost = 50;
+  const shippingCost = 35;
   const finalTotal = totalAmount + shippingCost;
 
   const formik = useFormik({
@@ -89,6 +83,7 @@ const Checkout = () => {
         // Create order with address fields directly
         const orderPayload = {
           items: orderItems,
+          name: values.name,
           phone: values.phone,
           notes: values.notes || null,
           address_street: values.addressLine1,
@@ -167,7 +162,7 @@ const Checkout = () => {
           <h1 className="text-4xl md:text-5xl font-heading font-bold text-brand-green-dark mb-2">
             {t('checkout.title')}
           </h1>
-          <p className="text-gray-600">Complete your order and get fresh fruits delivered to your doorstep</p>
+          <p className="text-gray-600">{t('checkout.subtitle')}</p>
         </div>
 
         {error && (
@@ -225,8 +220,9 @@ const Checkout = () => {
                     <span>{t('checkout.subtotal')}</span>
                     <span>{totalAmount} {t('products.price')}</span>
                   </div>
-                  <div className="flex justify-between mb-sm text-gray-600">
+                  <div className="flex items-center justify-between mb-sm text-gray-600">
                     <span>{t('checkout.delivery')}</span>
+                    <span className='text-xs text-red-500'>ثمن الشحن يتغير حسب المكان</span>
                     <span>{shippingCost} {t('products.price')}</span>
                   </div>
                   <div className="flex justify-between text-gray-900 font-bold text-xl mt-md pt-sm border-t-2 border-dashed border-gray-200">
@@ -253,8 +249,8 @@ const Checkout = () => {
             <h2 className="mb-lg pb-sm border-b border-gray-200 font-heading font-bold text-2xl">{t('checkout.deliveryDetails')}</h2>
 
             <form onSubmit={formik.handleSubmit}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="form-group">
+              <div className="">
+                <div className="">
                   <label htmlFor="name" className="form-label">
                     {t('checkout.fullName')}
                   </label>
@@ -273,7 +269,7 @@ const Checkout = () => {
                   )}
                 </div>
 
-                <div className="form-group">
+                <div className="">
                   <label htmlFor="phone" className="form-label">
                     {t('checkout.phone')}
                   </label>
@@ -291,74 +287,70 @@ const Checkout = () => {
                     <div className="text-red-500 text-sm mt-1">{formik.errors.phone}</div>
                   )}
                 </div>
+
+                <div className="">
+                  <label htmlFor="addressLine1" className="form-label">
+                    {t('checkout.addressDetails')}
+                  </label>
+                  <input
+                    type="text"
+                    id="addressLine1"
+                    name="addressLine1"
+                    value={formik.values.addressLine1}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    placeholder={language === 'ar' ? 'الشارع والمنطقة' : 'Street and Area'}
+                    className={`form-input ${formik.touched.addressLine1 && formik.errors.addressLine1 ? 'border-red-500' : ''}`}
+                  />
+                  {formik.touched.addressLine1 && formik.errors.addressLine1 && (
+                    <div className="text-red-500 text-sm mt-1">{formik.errors.addressLine1}</div>
+                  )}
+
+                  <input
+                    type="text"
+                    id="addressLine2"
+                    name="addressLine2"
+                    value={formik.values.addressLine2}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    placeholder={language === 'ar' ? 'رقم الشقة، الدور (اختياري)' : 'Apartment, Floor (optional)'}
+                    className="form-input"
+                  />
+
+                  <input
+                    type="text"
+                    id="city"
+                    name="city"
+                    value={formik.values.city}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    placeholder={language === 'ar' ? 'المدينة' : 'City'}
+                    className={`form-input ${formik.touched.city && formik.errors.city ? 'border-red-500' : ''}`}
+                  />
+                  {formik.touched.city && formik.errors.city && (
+                    <div className="text-red-500 text-sm mt-1">{formik.errors.city}</div>
+                  )}
+
+                  <label htmlFor="notes" className="form-label">
+                    {language === 'ar' ? 'ملاحظات (اختياري)' : 'Notes (optional)'}
+                  </label>
+                  <textarea
+                    id="notes"
+                    name="notes"
+                    rows="6"
+                    cols="30"
+                    value={formik.values.notes}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    placeholder={language === 'ar' ? 'أي تعليمات خاصة للتوصيل' : 'Any special delivery instructions'}
+                    className="form-input"
+                  ></textarea>
+                </div>
               </div>
-
-              {/* Address Section */}
-              <div className="form-group mb-6">
-                <label htmlFor="addressLine1" className="form-label">
-                  {t('checkout.addressDetails')}
-                </label>
-                <input
-                  type="text"
-                  id="addressLine1"
-                  name="addressLine1"
-                  value={formik.values.addressLine1}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  placeholder={language === 'ar' ? 'الشارع والمنطقة' : 'Street and Area'}
-                  className={`form-input ${formik.touched.addressLine1 && formik.errors.addressLine1 ? 'border-red-500' : ''}`}
-                />
-                {formik.touched.addressLine1 && formik.errors.addressLine1 && (
-                  <div className="text-red-500 text-sm mt-1">{formik.errors.addressLine1}</div>
-                )}
-
-                <input
-                  type="text"
-                  id="addressLine2"
-                  name="addressLine2"
-                  value={formik.values.addressLine2}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  placeholder={language === 'ar' ? 'رقم الشقة، الدور (اختياري)' : 'Apartment, Floor (optional)'}
-                  className="form-input"
-                />
-
-                <input
-                  type="text"
-                  id="city"
-                  name="city"
-                  value={formik.values.city}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  placeholder={language === 'ar' ? 'المدينة' : 'City'}
-                  className={`form-input ${formik.touched.city && formik.errors.city ? 'border-red-500' : ''}`}
-                />
-                {formik.touched.city && formik.errors.city && (
-                  <div className="text-red-500 text-sm mt-1">{formik.errors.city}</div>
-                )}
-              </div>
-
-              {/* Notes */}
-              <div className="form-group mb-6">
-                <label htmlFor="notes" className="form-label">
-                  {language === 'ar' ? 'ملاحظات (اختياري)' : 'Notes (optional)'}
-                </label>
-                <textarea
-                  id="notes"
-                  name="notes"
-                  rows="3"
-                  value={formik.values.notes}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  placeholder={language === 'ar' ? 'أي تعليمات خاصة للتوصيل' : 'Any special delivery instructions'}
-                  className="form-input"
-                ></textarea>
-              </div>
-
               <Button
                 type="submit"
                 variant="gradient"
-                className="w-full"
+                className="w-full block"
                 disabled={items.length === 0 || loading || !formik.isValid}
               >
                 {loading ? (

@@ -1,5 +1,40 @@
 @import "tailwindcss";
-@config "../tailwind.config.js";
+
+@theme {
+  /* Colors */
+  --color-brand-green: #2E7D32;
+  --color-brand-green-dark: #1B5E20;
+  --color-brand-green-light: #4CAF50;
+
+  --color-brand-orange: #F57C00;
+  --color-brand-orange-light: #FF9800;
+
+  --color-brand-red: #D32F2F;
+  --color-brand-yellow: #FBC02D;
+  --color-brand-bg: #FFFDF5;
+
+  --color-brand-surface: #FFFFFF;
+  --color-brand-surface-alt: #F5F5F0;
+
+  /* Fonts */
+  --font-heading: 'Alexandria', sans-serif;
+  --font-body: 'Cairo', sans-serif;
+  --font-hand: 'Cairo', cursive;
+
+  /* Shadows */
+  --shadow-card: 0 8px 24px rgba(149, 157, 165, 0.1);
+
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  --spacing-3xl: 4rem;
+}
+
+
 
 @layer base {
   * {
@@ -9,7 +44,7 @@
   }
 
   body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Cairo', sans-serif;
     background-color: #FFFDF5;
     color: #1A1A1A;
     /* line-height: 1.6; */
@@ -22,14 +57,14 @@
   h4,
   h5,
   h6 {
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Cairo', sans-serif;
     color: #1B5E20;
     line-height: 1.2;
     font-weight: 700;
   }
 
   button {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Cairo', sans-serif;
     cursor: pointer;
     border: none;
     outline: none;
@@ -55,17 +90,14 @@
   }
 
   /* Form styles that are used globally */
-  .form-group {
-    margin-bottom: 1.5rem;
-  }
+
 
   .form-label {
     display: block;
     font-size: 0.9rem;
     font-weight: 600;
     color: #1A1A1A;
-    margin-bottom: 0.25rem;
-    margin-left: 4px;
+    margin-bottom: 0.5rem;
   }
 
   .form-input {
@@ -77,6 +109,7 @@
     font-size: 1rem;
     transition: all 0.3s ease;
     outline: none;
+    margin-bottom: 0.9rem;
     color: #1A1A1A;
   }
 
