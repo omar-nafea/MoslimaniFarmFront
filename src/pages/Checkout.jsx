@@ -29,7 +29,9 @@ const getValidationSchema = (language) => Yup.object({
     .min(5, language === 'ar' ? 'العنوان يجب أن يكون 5 أحرف على الأقل' : 'Address must be at least 5 characters')
     .required(language === 'ar' ? 'العنوان مطلوب' : 'Address is required'),
 
-  addressLine2: Yup.string(),
+  addressLine2: Yup.string()
+    .min(5, language === 'ar' ? 'العنوان يجب أن يكون 5 أحرف على الأقل' : 'Address must be at least 5 characters')
+    .required(language === 'ar' ? 'الشقة مطلوب' : 'Address is required'),
 
   city: Yup.string()
     .min(2, language === 'ar' ? 'المدينة يجب أن تكون حرفين على الأقل' : 'City must be at least 2 characters')
@@ -87,7 +89,7 @@ const Checkout = () => {
           phone: values.phone,
           notes: values.notes || null,
           address_street: values.addressLine1,
-          address_building: values.addressLine2 || '',
+          address_building: values.addressLine2,
           address_city: values.city
         };
 
@@ -198,7 +200,7 @@ const Checkout = () => {
                           </button>
                         </div>
                         <p className="text-sm text-gray-600 font-medium">
-                          {item.price} {t('products.price')} / {language === 'ar' ? item.unitAr : item.unit}
+                          {item.price} {t('products.price')}
                         </p>
                         <div className="flex items-center gap-2 mt-2">
                           <button className="w-7 h-7 rounded-md text-white bg-brand-green transition-all duration-200 hover:bg-brand-green-dark" onClick={() => handleQuantityChange(index, item.quantity + 1)}>+</button>
@@ -313,9 +315,14 @@ const Checkout = () => {
                     value={formik.values.addressLine2}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
-                    placeholder={language === 'ar' ? 'رقم الشقة، الدور (اختياري)' : 'Apartment, Floor (optional)'}
-                    className="form-input"
+                    placeholder={language === 'ar' ? 'العمارة ،رقم الشقة، الدور' : 'Apartment, Floor (optional)'}
+
+                    className={`form-input ${formik.touched.addressLine2 && formik.errors.addressLine2 ? 'border-red-500' : ''}`}
+
                   />
+                  {formik.touched.addressLine2 && formik.errors.addressLine2 && (
+                    <div className="text-red-500 text-sm mt-1">{formik.errors.addressLine2}</div>
+                  )}
 
                   <input
                     type="text"

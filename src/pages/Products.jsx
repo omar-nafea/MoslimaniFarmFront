@@ -28,8 +28,6 @@ const Products = () => {
         description: product.description,
         descriptionAr: product.description_ar || product.description,
         price: parseFloat(product.price),
-        unit: product.unit,
-        unitAr: product.unit_ar || product.unit,
         image: product.image_url
           ? `http://127.0.0.1:8000/storage/${product.image_url}`
           : '/placeholder-product.jpg',

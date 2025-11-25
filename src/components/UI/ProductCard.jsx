@@ -6,14 +6,13 @@ import { useLanguage } from '../../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
-  const { id, name, nameAr, description, descriptionAr, price, image, unit = 'kg', unitAr = 'كجم' } = product;
+  const { id, name, nameAr, description, descriptionAr, price, image } = product;
   const { addToCart } = useCart();
   const { t, language } = useLanguage();
   const navigate = useNavigate();
 
   const displayName = language === 'ar' ? nameAr : name;
   const displayDescription = language === 'ar' ? descriptionAr : description;
-  const displayUnit = language === 'ar' ? unitAr : unit;
 
   const handleAddToCart = (e) => {
     e.preventDefault(); // Prevent navigation if inside a link
@@ -43,7 +42,7 @@ const ProductCard = ({ product }) => {
         <p className="text-sm text-gray-600 mb-md leading-snug line-clamp-2">{displayDescription}</p>
         <div className="mt-auto flex items-center justify-between">
           <span className="font-heading font-bold text-lg text-brand-green-dark">
-            {price} {t('products.price')} <span className="text-xs font-normal text-gray-400">/ {displayUnit}</span>
+            {price} {t('products.price')}
           </span>
           <Button variant="primary" className="px-md py-xs text-sm" onClick={(e) => {
             e.preventDefault();
