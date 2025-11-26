@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
+import { fetchWithCache } from '../utils/apiCache';
 
 const ComingProducts = () => {
   const [products, setProducts] = useState([]);
@@ -8,8 +9,7 @@ const ComingProducts = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/v1/coming-products');
-        const data = await response.json();
+        const data = await fetchWithCache('coming_products', 'http://127.0.0.1:8000/api/v1/coming-products');
         setProducts(data);
       } catch (error) {
         console.error('Error fetching coming products:', error);
@@ -34,7 +34,7 @@ const ComingProducts = () => {
             <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-card border border-brand-beige/20">
               <div className="relative h-[80%] overflow-hidden group">
                 <img
-                  src={product.image_url}
+                  src={product.image_full_url}
                   alt={product.name}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />

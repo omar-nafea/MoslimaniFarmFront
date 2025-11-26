@@ -18,19 +18,36 @@ const Products = () => {
     try {
       setLoading(true);
       setError('');
-      const response = await productService.getProducts();
+
+      let productData = [];
+      const cached = localStorage.getItem('products');
+
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        const ageInMinutes = (Date.now() - timestamp) / (1000 * 60);
+        if (ageInMinutes < 60) {
+          productData = data;
+        }
+      }
+
+      if (productData.length === 0) {
+        const response = await productService.getProducts();
+        productData = response.data.data;
+        localStorage.setItem('products', JSON.stringify({
+          data: productData,
+          timestamp: Date.now()
+        }));
+      }
 
       // Transform backend data to match frontend structure
-      const transformedProducts = response.data.data.map(product => ({
+      const transformedProducts = productData.map(product => ({
         id: product.id,
         name: product.name,
         nameAr: product.name_ar || product.name,
         description: product.description,
         descriptionAr: product.description_ar || product.description,
         price: parseFloat(product.price),
-        image: product.image_url
-          ? `http://127.0.0.1:8000/storage/${product.image_url}`
-          : '/placeholder-product.jpg',
+        image: product.image_full_url || '/placeholder-product.jpg',
         season: 'current' // All active products are considered current
       }));
 

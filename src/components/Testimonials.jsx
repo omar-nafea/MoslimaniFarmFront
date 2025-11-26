@@ -1,26 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import TestimonialCard from './UI/TestimonialCard';
+import test1 from '../assets/testimonials/test1.jpeg';
+import test2 from '../assets/testimonials/test2.jpeg';
+import test3 from '../assets/testimonials/test3.jpeg';
 
 const Testimonials = () => {
-  const [testimonials, setTestimonials] = useState([]);
-
-  useEffect(() => {
-    const fetchTestimonials = async () => {
-      try {
-        const response = await fetch('http://127.0.0.1:8000/api/v1/testimonials');
-        const data = await response.json();
-        setTestimonials(data);
-      } catch (error) {
-        console.error('Error fetching testimonials:', error);
-      }
-    };
-
-    fetchTestimonials();
-  }, []);
-
-  if (testimonials.length === 0) {
-    return null;
-  }
+  const testimonials = [
+    {
+      id: 1,
+      image_full_url: test1,
+    },
+    {
+      id: 2,
+      image_full_url: test2,
+    },
+    {
+      id: 3,
+      image_full_url: test3,
+    },
+  ];
 
   return (
     <section className="py-xl bg-brand-beige/20">

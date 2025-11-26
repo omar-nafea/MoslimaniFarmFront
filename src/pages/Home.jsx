@@ -5,12 +5,10 @@ import Testimonials from '../components/Testimonials';
 import ComingProducts from '../components/ComingProducts';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import Button from '../components/UI/Button';
-import greenPath from '../assets/images/greenPath.jpeg';
-import pomegranate from '../assets/images/pomegranate.jpeg';
-import pomegranate2 from '../assets/images/path1.jpeg';
-import pomegranateTree from '../assets/images/pomogranateTree.jpeg';
 import { useLanguage } from '../context/LanguageContext';
 
+
+import { fetchWithCache } from '../utils/apiCache';
 
 const Home = () => {
   const { t } = useLanguage();
@@ -19,11 +17,10 @@ const Home = () => {
   useEffect(() => {
     const fetchHeroImages = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/v1/hero-images');
-        const data = await response.json();
+        const data = await fetchWithCache('hero_images', 'http://127.0.0.1:8000/api/v1/hero-images');
         setImages(data);
       } catch (error) {
-        console.error('Error fetching testimonials:', error);
+        console.error('Error fetching hero images:', error);
       }
     };
 
@@ -77,7 +74,7 @@ const Home = () => {
                   className={`absolute top-0 left-0 w-full h-full transition-all duration-700 ease-in-out ${position}`}
                 >
                   <img
-                    src={item.image_path}
+                    src={item.image_full_url}
                     alt="Farm view"
                     className="w-full h-full md:object-contain object-cover"
                   />
@@ -120,8 +117,8 @@ const Home = () => {
                 key={dotIndex}
                 onClick={() => setIndex(dotIndex)}
                 className={`transition-all duration-300 rounded-full ${dotIndex === index
-                    ? 'w-8 h-3 bg-brand-yellow'
-                    : 'w-3 h-3 bg-white/50 hover:bg-white/70'
+                  ? 'w-8 h-3 bg-brand-yellow'
+                  : 'w-3 h-3 bg-white/50 hover:bg-white/70'
                   }`}
                 aria-label={`Go to slide ${dotIndex + 1}`}
               />
