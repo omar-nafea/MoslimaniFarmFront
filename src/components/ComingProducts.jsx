@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { fetchWithCache } from '../utils/apiCache';
-import { normalizeImageUrl } from '../utils/imageUtils';
+import { normalizeImageUrl, getCachedImage } from '../utils/imageUtils';
 
 const ComingProducts = () => {
   const [products, setProducts] = useState([]);
@@ -10,24 +9,28 @@ const ComingProducts = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const data = await fetchWithCache('coming_products', 'http://127.0.0.1:8000/api/v1/coming-products');
+        // Always fetch fresh data from API
+        const response = await fetch('http://127.0.0.1:8000/api/v1/coming-products');
+        const data = await response.json();
         
-        // Transform products to ensure image URLs are absolute
-        const transformedProducts = data.map(product => {
-          // Normalize image URL to ensure it's absolute
-          const imageUrl = normalizeImageUrl(
-            product.image_full_url || product.image_url,
-            'images/coming_products'
-          );
-          
-          // Debug logging (can be removed in production)
-          console.log('Coming Product:', product.name, 'Original Image URL:', product.image_full_url || product.image_url, 'Normalized:', imageUrl);
-          
-          return {
-            ...product,
-            image_full_url: imageUrl
-          };
-        });
+        // Transform products to ensure image URLs are absolute and cached
+        const transformedProducts = await Promise.all(
+          data.map(async (product) => {
+            // Normalize image URL to ensure it's absolute
+            const imageUrl = normalizeImageUrl(
+              product.image_full_url || product.image_url,
+              'images/coming_products'
+            );
+            
+            // Get cached image
+            const cachedImageUrl = await getCachedImage(imageUrl);
+            
+            return {
+              ...product,
+              image_full_url: cachedImageUrl
+            };
+          })
+        );
         
         setProducts(transformedProducts);
       } catch (error) {

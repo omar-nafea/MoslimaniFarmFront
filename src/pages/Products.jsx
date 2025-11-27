@@ -20,25 +20,9 @@ const Products = () => {
       setLoading(true);
       setError('');
 
-      let productData = [];
-      const cached = localStorage.getItem('products');
-
-      if (cached) {
-        const { data, timestamp } = JSON.parse(cached);
-        const ageInMinutes = (Date.now() - timestamp) / (1000 * 60);
-        if (ageInMinutes < 60) {
-          productData = data;
-        }
-      }
-
-      if (productData.length === 0) {
-        const response = await productService.getProducts();
-        productData = response.data.data;
-        localStorage.setItem('products', JSON.stringify({
-          data: productData,
-          timestamp: Date.now()
-        }));
-      }
+      // Always fetch fresh product data from API
+      const response = await productService.getProducts();
+      const productData = response.data.data;
 
       // Transform backend data to match frontend structure
       const transformedProducts = productData.map(product => {
@@ -47,9 +31,6 @@ const Products = () => {
           product.image_full_url || product.image_url,
           'images/products'
         );
-
-        // Debug logging (can be removed in production)
-        console.log('Product:', product.name, 'Original Image URL:', product.image_full_url || product.image_url, 'Normalized:', imageUrl);
 
         return {
           id: product.id,

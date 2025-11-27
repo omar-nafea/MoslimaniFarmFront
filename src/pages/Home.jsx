@@ -50,12 +50,20 @@ const Home = () => {
 
   // Go to next slide
   const nextSlide = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % sliderImages.length);
+    if (currentIndex < sliderImages.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    } else {
+      setCurrentIndex(0);
+    }
   };
 
   // Go to previous slide
   const prevSlide = () => {
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + sliderImages.length) % sliderImages.length);
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    } else {
+      setCurrentIndex(sliderImages.length - 1);
+    }
   };
 
   // Go to specific slide
@@ -101,38 +109,39 @@ const Home = () => {
 
           {/* Gradient Overlay */}
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-black/30 to-black/60 z-20"></div>
-
-          {/* Navigation Arrows */}
-          <button
-            onClick={prevSlide}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-30 bg-black/30 hover:bg-black/50 rounded-full p-2 transition-all duration-300 backdrop-blur-sm"
-            aria-label="Previous slide"
-          >
-            <ChevronLeft size={32} />
-          </button>
-          <button
-            onClick={nextSlide}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-30 bg-black/30 hover:bg-black/50 rounded-full p-2 transition-all duration-300 backdrop-blur-sm"
-            aria-label="Next slide"
-          >
-            <ChevronRight size={32} />
-          </button>
-
-          {/* Slide Indicators */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex gap-2">
-            {sliderImages.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => goToSlide(index)}
-                className={`h-2 rounded-full transition-all duration-300 ${index === currentIndex
-                  ? 'w-8 bg-brand-yellow'
-                  : 'w-2 bg-white/50 hover:bg-white/70'
-                  }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
         </div>
+
+        {/* Navigation Arrows - Outside the -z-10 container */}
+        <button
+          onClick={prevSlide}
+          className="absolute bottom-4 left-[30%] -translate-x-1/2 z-30 bg-black/30 hover:bg-black/50 rounded-full p-2 transition-all duration-300 cursor-pointer backdrop-blur-sm"
+          aria-label="Previous slide"
+        >
+          <ChevronLeft size={32} />
+        </button>
+
+        {/* Slide Indicators */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex gap-2">
+          {sliderImages.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              className={`h-2 rounded-full transition-all duration-300 ${index === currentIndex
+                ? 'w-8 bg-brand-yellow'
+                : 'w-2 bg-white/50 hover:bg-white/70'
+                }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+
+        <button
+          onClick={nextSlide}
+          className="absolute bottom-4 left-[70%] -translate-x-1/2 z-30 bg-black/30 hover:bg-black/50 rounded-full p-2 transition-all duration-300 cursor-pointer backdrop-blur-sm"
+          aria-label="Next slide"
+        >
+          <ChevronRight size={32} />
+        </button>
 
         {/* Hero Content */}
         <div className="container relative z-10 max-w-[800px] text-center mx-auto">

@@ -4,6 +4,7 @@ import Button from './Button';
 import { useCart } from '../../context/CartContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import { getCachedImage } from '../../utils/imageUtils';
 
 const ProductCard = ({ product }) => {
   const { id, name, nameAr, description, descriptionAr, price, image } = product;
@@ -11,7 +12,8 @@ const ProductCard = ({ product }) => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [imageError, setImageError] = useState(false);
-  const [imageSrc, setImageSrc] = useState(image || '/placeholder-product.jpg');
+  const [imageSrc, setImageSrc] = useState('/placeholder-product.jpg');
+  const [isLoading, setIsLoading] = useState(true);
 
   const displayName = language === 'ar' ? nameAr : name;
   const displayDescription = language === 'ar' ? descriptionAr : description;
@@ -31,11 +33,26 @@ const ProductCard = ({ product }) => {
   };
 
   useEffect(() => {
-    if (image) {
-      setImageSrc(image);
-      setImageError(false);
-    }
-  }, [image]);
+    const loadImage = async () => {
+      if (image && !imageError) {
+        setIsLoading(true);
+        try {
+          const cachedImageUrl = await getCachedImage(image);
+          setImageSrc(cachedImageUrl);
+        } catch (error) {
+          console.error('Error loading image:', error);
+          setImageSrc(image); // Fallback to original URL
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        setImageSrc('/placeholder-product.jpg');
+        setIsLoading(false);
+      }
+    };
+
+    loadImage();
+  }, [image, imageError]);
 
   return (
     <div className="bg-white rounded-lg overflow-hidden shadow-sm transition-all duration-300 flex flex-col h-full hover:-translate-y-1 hover:shadow-card group">
