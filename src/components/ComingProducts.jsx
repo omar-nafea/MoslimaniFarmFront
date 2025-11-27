@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { fetchWithCache } from '../utils/apiCache';
+import { normalizeImageUrl } from '../utils/imageUtils';
 
 const ComingProducts = () => {
   const [products, setProducts] = useState([]);
@@ -10,7 +11,25 @@ const ComingProducts = () => {
     const fetchProducts = async () => {
       try {
         const data = await fetchWithCache('coming_products', 'http://127.0.0.1:8000/api/v1/coming-products');
-        setProducts(data);
+        
+        // Transform products to ensure image URLs are absolute
+        const transformedProducts = data.map(product => {
+          // Normalize image URL to ensure it's absolute
+          const imageUrl = normalizeImageUrl(
+            product.image_full_url || product.image_url,
+            'images/coming_products'
+          );
+          
+          // Debug logging (can be removed in production)
+          console.log('Coming Product:', product.name, 'Original Image URL:', product.image_full_url || product.image_url, 'Normalized:', imageUrl);
+          
+          return {
+            ...product,
+            image_full_url: imageUrl
+          };
+        });
+        
+        setProducts(transformedProducts);
       } catch (error) {
         console.error('Error fetching coming products:', error);
       }
@@ -32,10 +51,19 @@ const ComingProducts = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-lg">
           {products.map((product) => (
             <div key={product.id} className="bg-white rounded-lg overflow-hidden shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-card border border-brand-beige/20">
-              <div className="relative h-[80%] overflow-hidden group">
+              <div className="relative h-[80%] overflow-hidden group bg-gray-100">
                 <img
-                  src={product.image_full_url}
+                  src={product.image_full_url || '/placeholder-product.jpg'}
                   alt={product.name}
+                  onError={(e) => {
+                    // Prevent infinite loop: if already trying placeholder, stop
+                    if (e.target.src.includes('placeholder-product.jpg')) {
+                      e.target.style.display = 'none';
+                      return;
+                    }
+                    console.error('Image failed to load:', product.image_full_url);
+                    e.target.src = '/placeholder-product.jpg';
+                  }}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">

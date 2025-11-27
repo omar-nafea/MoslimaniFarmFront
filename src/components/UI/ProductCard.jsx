@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import Button from './Button';
 import { useCart } from '../../context/CartContext';
@@ -10,6 +10,8 @@ const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
   const { t, language } = useLanguage();
   const navigate = useNavigate();
+  const [imageError, setImageError] = useState(false);
+  const [imageSrc, setImageSrc] = useState(image || '/placeholder-product.jpg');
 
   const displayName = language === 'ar' ? nameAr : name;
   const displayDescription = language === 'ar' ? descriptionAr : description;
@@ -21,12 +23,27 @@ const ProductCard = ({ product }) => {
     // alert(`${displayName} added to cart!`);
   };
 
+  const handleImageError = () => {
+    if (!imageError) {
+      setImageError(true);
+      setImageSrc('/placeholder-product.jpg');
+    }
+  };
+
+  useEffect(() => {
+    if (image) {
+      setImageSrc(image);
+      setImageError(false);
+    }
+  }, [image]);
+
   return (
     <div className="bg-white rounded-lg overflow-hidden shadow-sm transition-all duration-300 flex flex-col h-full hover:-translate-y-1 hover:shadow-card group">
-      <div className="relative pt-[75%] overflow-hidden">
+      <div className="relative pt-[75%] overflow-hidden bg-gray-100">
         <img
-          src={image}
+          src={imageSrc}
           alt={displayName}
+          onError={handleImageError}
           className="absolute top-0 left-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <button

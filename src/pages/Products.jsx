@@ -3,6 +3,7 @@ import ProductCard from '../components/UI/ProductCard';
 import { productService } from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
 import { Loader2, AlertCircle } from 'lucide-react';
+import { normalizeImageUrl } from '../utils/imageUtils';
 
 const Products = () => {
   const { t, language } = useLanguage();
@@ -40,16 +41,27 @@ const Products = () => {
       }
 
       // Transform backend data to match frontend structure
-      const transformedProducts = productData.map(product => ({
-        id: product.id,
-        name: product.name,
-        nameAr: product.name_ar || product.name,
-        description: product.description,
-        descriptionAr: product.description_ar || product.description,
-        price: parseFloat(product.price),
-        image: product.image_full_url || '/placeholder-product.jpg',
-        season: 'current' // All active products are considered current
-      }));
+      const transformedProducts = productData.map(product => {
+        // Normalize image URL to ensure it's absolute
+        const imageUrl = normalizeImageUrl(
+          product.image_full_url || product.image_url,
+          'images/products'
+        );
+
+        // Debug logging (can be removed in production)
+        console.log('Product:', product.name, 'Original Image URL:', product.image_full_url || product.image_url, 'Normalized:', imageUrl);
+
+        return {
+          id: product.id,
+          name: product.name,
+          nameAr: product.name_ar || product.name,
+          description: product.description,
+          descriptionAr: product.description_ar || product.description,
+          price: parseFloat(product.price),
+          image: imageUrl,
+          season: 'current' // All active products are considered current
+        };
+      });
 
       setProducts(transformedProducts);
     } catch (err) {
