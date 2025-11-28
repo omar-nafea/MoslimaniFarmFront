@@ -3,7 +3,7 @@
  */
 
 const API_URL =
-  import.meta.env.VITE_API_URL || "https:/302ce27185c1.ngrok-free.app/api";
+  import.meta.env.VITE_API_URL || "https://302ce27185c1.ngrok-free.app/api";
 const STORAGE_URL = API_URL.replace("/api", "/storage");
 
 /**
