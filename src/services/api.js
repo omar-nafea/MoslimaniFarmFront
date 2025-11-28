@@ -7,6 +7,8 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
+    // Required for ngrok free tier to bypass browser warning page
+    "ngrok-skip-browser-warning": "true",
   },
   timeout: 30000,
 });
