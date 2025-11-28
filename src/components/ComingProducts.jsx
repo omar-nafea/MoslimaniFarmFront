@@ -15,22 +15,27 @@ const ComingProducts = () => {
         const response = await productService.getComingProducts({ active: true });
         
         if (response.success && response.data) {
-          // Convert absolute ngrok URLs to relative URLs so they go through Vite proxy
-          const convertToRelativeUrl = (url) => {
+          // Process image URLs for both dev and production
+          const processImageUrl = (url) => {
             if (!url) return url;
             try {
               const urlObj = new URL(url);
-              return urlObj.pathname;
+              const imagePath = urlObj.pathname;
+              // In production, use Vercel API proxy
+              if (import.meta.env.PROD) {
+                return `/api${imagePath}`;
+              }
+              return imagePath;
             } catch {
               return url;
             }
           };
 
-          const productsWithRelativeUrls = response.data.map(product => ({
+          const processedProducts = response.data.map(product => ({
             ...product,
-            image_url: convertToRelativeUrl(product.image_url)
+            image_url: processImageUrl(product.image_url)
           }));
-          setProducts(productsWithRelativeUrls);
+          setProducts(processedProducts);
         }
       } catch (error) {
         console.error('Error fetching coming products:', error);

@@ -22,16 +22,25 @@ const Products = () => {
       const response = await productService.getProducts({ active: true });
 
       if (response.success && response.data) {
-        // Convert absolute ngrok URLs to relative URLs so they go through Vite proxy
-        // This allows the proxy to add the ngrok-skip-browser-warning header
-        const convertToRelativeUrl = (url) => {
+        // Process image URLs for both dev and production
+        const processImageUrl = (url) => {
           if (!url) return url;
-          // Extract the path from absolute URL (e.g., /images/products/xxx.jpg)
+
           try {
             const urlObj = new URL(url);
-            return urlObj.pathname; // Returns just the path like /images/products/xxx.jpg
+            // Extract the path (e.g., /images/products/xxx.jpg)
+            const imagePath = urlObj.pathname;
+
+            // In production (Vercel), use the API proxy route
+            if (import.meta.env.PROD) {
+              // Use Vercel serverless function to proxy with ngrok header
+              return `/api${imagePath}`;
+            }
+
+            // In development, use Vite proxy
+            return imagePath;
           } catch {
-            return url; // If not a valid URL, return as-is
+            return url;
           }
         };
 
@@ -43,8 +52,8 @@ const Products = () => {
           description: product.description,
           descriptionAr: product.description,
           price: parseFloat(product.price),
-          image: convertToRelativeUrl(product.image_url),
-          image_url: convertToRelativeUrl(product.image_url),
+          image: processImageUrl(product.image_url),
+          image_url: processImageUrl(product.image_url),
           season: 'current'
         }));
 
