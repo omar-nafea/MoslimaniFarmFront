@@ -49,6 +49,7 @@ const ProductCard = ({ product }) => {
           src={imageSrc}
           alt={displayName}
           onError={handleImageError}
+          crossOrigin="anonymous"
           className="absolute top-0 left-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <button

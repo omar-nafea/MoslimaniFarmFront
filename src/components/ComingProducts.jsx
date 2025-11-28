@@ -60,6 +60,7 @@ const ComingProducts = () => {
                   <img
                     src={product.image_url}
                     alt={product.name}
+                    crossOrigin="anonymous"
                     onError={(e) => {
                       e.target.style.display = 'none';
                     }}
