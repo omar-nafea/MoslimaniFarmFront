@@ -20,8 +20,21 @@ const Products = () => {
       setError('');
 
       const response = await productService.getProducts({ active: true });
-      
+
       if (response.success && response.data) {
+        // Convert absolute ngrok URLs to relative URLs so they go through Vite proxy
+        // This allows the proxy to add the ngrok-skip-browser-warning header
+        const convertToRelativeUrl = (url) => {
+          if (!url) return url;
+          // Extract the path from absolute URL (e.g., /images/products/xxx.jpg)
+          try {
+            const urlObj = new URL(url);
+            return urlObj.pathname; // Returns just the path like /images/products/xxx.jpg
+          } catch {
+            return url; // If not a valid URL, return as-is
+          }
+        };
+
         // Transform backend data to match frontend structure
         const transformedProducts = response.data.map(product => ({
           id: product.id,
@@ -30,8 +43,8 @@ const Products = () => {
           description: product.description,
           descriptionAr: product.description,
           price: parseFloat(product.price),
-          image: product.image_url,
-          image_url: product.image_url,
+          image: convertToRelativeUrl(product.image_url),
+          image_url: convertToRelativeUrl(product.image_url),
           season: 'current'
         }));
 

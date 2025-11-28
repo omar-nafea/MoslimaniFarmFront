@@ -145,7 +145,7 @@ const Home = () => {
 
         {/* Hero Content */}
         <div className="container relative z-10 max-w-[800px] text-center mx-auto">
-          <h1 className="font-hand text-6xl md:text-7xl mb-md text-brand-yellow drop-shadow-[2px_2px_4px_rgba(0,0,0,0.3)]">
+          <h1 className="font-hand text-5xl md:text-5xl leading-tight mb-md text-brand-yellow drop-shadow-[2px_2px_4px_rgba(0,0,0,0.3)]">
             {t('hero.title')}
           </h1>
           <p className="text-lg md:text-xl md:w-1/2 mx-auto mb-xl leading-relaxed font-bold drop-shadow-[1px_1px_2px_rgba(0,0,0,0.3)]">

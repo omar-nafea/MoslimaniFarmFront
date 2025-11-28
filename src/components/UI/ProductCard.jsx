@@ -5,13 +5,16 @@ import { useCart } from '../../context/CartContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 
+// Default placeholder as a data URL (a simple gray box with a product icon)
+const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect fill='%23f3f4f6' width='400' height='400'/%3E%3Cpath d='M200 120c-44.2 0-80 35.8-80 80s35.8 80 80 80 80-35.8 80-80-35.8-80-80-80zm0 140c-33.1 0-60-26.9-60-60s26.9-60 60-60 60 26.9 60 60-26.9 60-60 60z' fill='%23d1d5db'/%3E%3Ccircle cx='200' cy='200' r='20' fill='%23d1d5db'/%3E%3Ctext x='200' y='320' text-anchor='middle' fill='%239ca3af' font-family='Arial' font-size='14'%3ENo Image%3C/text%3E%3C/svg%3E";
+
 const ProductCard = ({ product }) => {
   const { id, name, nameAr, description, descriptionAr, price, image } = product;
   const { addToCart } = useCart();
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [imageError, setImageError] = useState(false);
-  const [imageSrc, setImageSrc] = useState('/placeholder-product.jpg');
+  const [imageSrc, setImageSrc] = useState(PLACEHOLDER_IMAGE);
   const [isLoading, setIsLoading] = useState(true);
 
   const displayName = language === 'ar' ? nameAr : name;
@@ -27,7 +30,7 @@ const ProductCard = ({ product }) => {
   const handleImageError = () => {
     if (!imageError) {
       setImageError(true);
-      setImageSrc('/placeholder-product.jpg');
+      setImageSrc(PLACEHOLDER_IMAGE);
     }
   };
 
@@ -37,7 +40,7 @@ const ProductCard = ({ product }) => {
       setImageSrc(image);
       setIsLoading(false);
     } else {
-      setImageSrc('/placeholder-product.jpg');
+      setImageSrc(PLACEHOLDER_IMAGE);
       setIsLoading(false);
     }
   }, [image, imageError]);
@@ -49,7 +52,6 @@ const ProductCard = ({ product }) => {
           src={imageSrc}
           alt={displayName}
           onError={handleImageError}
-          crossOrigin="anonymous"
           className="absolute top-0 left-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <button

@@ -15,7 +15,22 @@ const ComingProducts = () => {
         const response = await productService.getComingProducts({ active: true });
         
         if (response.success && response.data) {
-          setProducts(response.data);
+          // Convert absolute ngrok URLs to relative URLs so they go through Vite proxy
+          const convertToRelativeUrl = (url) => {
+            if (!url) return url;
+            try {
+              const urlObj = new URL(url);
+              return urlObj.pathname;
+            } catch {
+              return url;
+            }
+          };
+
+          const productsWithRelativeUrls = response.data.map(product => ({
+            ...product,
+            image_url: convertToRelativeUrl(product.image_url)
+          }));
+          setProducts(productsWithRelativeUrls);
         }
       } catch (error) {
         console.error('Error fetching coming products:', error);
@@ -60,7 +75,6 @@ const ComingProducts = () => {
                   <img
                     src={product.image_url}
                     alt={product.name}
-                    crossOrigin="anonymous"
                     onError={(e) => {
                       e.target.style.display = 'none';
                     }}
