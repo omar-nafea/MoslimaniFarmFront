@@ -26,19 +26,15 @@ const Products = () => {
         const processImageUrl = (url) => {
           if (!url) return url;
 
+          // In production (Vercel), use the API proxy to add ngrok header
+          if (import.meta.env.PROD) {
+            return `/api/proxy?url=${encodeURIComponent(url)}`;
+          }
+
+          // In development, convert to relative URL for Vite proxy
           try {
             const urlObj = new URL(url);
-            // Extract the path (e.g., /images/products/xxx.jpg)
-            const imagePath = urlObj.pathname;
-
-            // In production (Vercel), use the API proxy route
-            if (import.meta.env.PROD) {
-              // Use Vercel serverless function to proxy with ngrok header
-              return `/api${imagePath}`;
-            }
-
-            // In development, use Vite proxy
-            return imagePath;
+            return urlObj.pathname;
           } catch {
             return url;
           }

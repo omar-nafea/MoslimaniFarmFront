@@ -18,14 +18,14 @@ const ComingProducts = () => {
           // Process image URLs for both dev and production
           const processImageUrl = (url) => {
             if (!url) return url;
+            // In production, use API proxy to add ngrok header
+            if (import.meta.env.PROD) {
+              return `/api/proxy?url=${encodeURIComponent(url)}`;
+            }
+            // In development, use Vite proxy
             try {
               const urlObj = new URL(url);
-              const imagePath = urlObj.pathname;
-              // In production, use Vercel API proxy
-              if (import.meta.env.PROD) {
-                return `/api${imagePath}`;
-              }
-              return imagePath;
+              return urlObj.pathname;
             } catch {
               return url;
             }

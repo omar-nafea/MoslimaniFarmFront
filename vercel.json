@@ -1,10 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/api/images/:path*",
-      "destination": "/api/images/:path*"
-    },
-    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
@@ -19,7 +15,7 @@
     }
   ],
   "functions": {
-    "api/images/[...path].js": {
+    "api/proxy.js": {
       "maxDuration": 10
     }
   }
