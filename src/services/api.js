@@ -1,22 +1,21 @@
 import axios from 'axios';
-import Cookies from 'js-cookie';
 
-const API_URL = 'http://127.0.0.1:8000/api/v1';
-
+// Create axios instance with default config
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
+  timeout: 30000,
 });
 
-// Add a request interceptor to attach the token
+// Request interceptor - add auth token if available
 api.interceptors.request.use(
   (config) => {
-    const token = Cookies.get('token');
+    const token = localStorage.getItem('auth_token');
     if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
@@ -25,68 +24,24 @@ api.interceptors.request.use(
   }
 );
 
-
-// Add a response interceptor to handle errors (e.g., 401 Unauthorized)
+// Response interceptor - handle errors globally
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    // If error is 401 and we haven't tried to refresh yet
-    if (error.response.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      try {
-        // Try to refresh the token
-        const response = await axios.post(`${API_URL}/auth/refresh`, {}, {
-            headers: {
-                'Authorization': `Bearer ${Cookies.get('token')}`
-            }
-        });
-
-        if (response.data.access_token) {
-            Cookies.set('token', response.data.access_token, { expires: 7, sameSite: 'strict' });
-            api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
-            return api(originalRequest);
-        }
-      } catch (refreshError) {
-        // If refresh fails, logout
-        Cookies.remove('token');
-        Cookies.remove('user');
-        window.location.href = '/login';
-        return Promise.reject(refreshError);
-      }
+  (error) => {
+    // Handle 401 Unauthorized
+    if (error.response?.status === 401) {
+      localStorage.removeItem('auth_token');
+      // Optionally redirect to login or dispatch logout event
     }
-
+    
+    // Handle network errors
+    if (!error.response) {
+      console.error('Network error:', error.message);
+    }
+    
     return Promise.reject(error);
   }
 );
 
-export const authService = {
-  register: (userData) => api.post('/auth/register', userData),
-  login: (credentials) => api.post('/auth/login', credentials),
-  logout: () => api.post('/auth/logout'),
-  getProfile: () => api.get('/auth/me'),
-};
-
-export const productService = {
-  getProducts: (params = {}) => api.get('/products', { params }),
-  getProduct: (id) => api.get(`/products/${id}`),
-};
-
-export const addressService = {
-  getAddresses: () => api.get('/addresses'),
-  createAddress: (addressData) => api.post('/addresses', addressData),
-  getAddress: (id) => api.get(`/addresses/${id}`),
-  updateAddress: (id, addressData) => api.put(`/addresses/${id}`, addressData),
-  deleteAddress: (id) => api.delete(`/addresses/${id}`),
-};
-
-export const orderService = {
-  createOrder: (orderData) => api.post('/orders', orderData),
-  getOrders: (params = {}) => api.get('/orders', { params }),
-  getOrder: (id) => api.get(`/orders/${id}`),
-  cancelOrder: (id) => api.post(`/orders/${id}/cancel`),
-};
-
 export default api;
+

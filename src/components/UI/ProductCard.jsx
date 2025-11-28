@@ -4,7 +4,6 @@ import Button from './Button';
 import { useCart } from '../../context/CartContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
-import { getCachedImage } from '../../utils/imageUtils';
 
 const ProductCard = ({ product }) => {
   const { id, name, nameAr, description, descriptionAr, price, image } = product;
@@ -33,25 +32,14 @@ const ProductCard = ({ product }) => {
   };
 
   useEffect(() => {
-    const loadImage = async () => {
-      if (image && !imageError) {
-        setIsLoading(true);
-        try {
-          const cachedImageUrl = await getCachedImage(image);
-          setImageSrc(cachedImageUrl);
-        } catch (error) {
-          console.error('Error loading image:', error);
-          setImageSrc(image); // Fallback to original URL
-        } finally {
-          setIsLoading(false);
-        }
-      } else {
-        setImageSrc('/placeholder-product.jpg');
-        setIsLoading(false);
-      }
-    };
-
-    loadImage();
+    // Simply use the image URL directly without caching/fetch operations
+    if (image && !imageError) {
+      setImageSrc(image);
+      setIsLoading(false);
+    } else {
+      setImageSrc('/placeholder-product.jpg');
+      setIsLoading(false);
+    }
   }, [image, imageError]);
 
   return (

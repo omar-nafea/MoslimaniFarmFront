@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import Cookies from 'js-cookie';
-import { authService } from '../services/api';
+import { authService } from '../services';
 
 const AuthContext = createContext();
 
@@ -17,20 +16,25 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load user from cookies on mount
+  // Load user from localStorage on mount
   useEffect(() => {
     const initializeAuth = async () => {
-      const token = Cookies.get('token');
-      if (token) {
+      const storedUser = authService.getUser();
+      const token = authService.getToken();
+      
+      if (token && storedUser) {
         try {
           // Verify token by fetching profile
-          const response = await authService.getProfile();
-          setUser(response.data);
-          setIsAuthenticated(true);
+          const response = await authService.me();
+          if (response.success) {
+            setUser(response.user);
+            setIsAuthenticated(true);
+          }
         } catch (error) {
-          console.error('Failed to fetch user profile:', error);
-          Cookies.remove('token');
-          Cookies.remove('user');
+          console.error('Failed to verify auth:', error);
+          // Clear invalid token
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('user');
         }
       }
       setIsLoading(false);
@@ -39,46 +43,22 @@ export const AuthProvider = ({ children }) => {
     initializeAuth();
   }, []);
 
-  const signup = async (userData) => {
-    try {
-      const response = await authService.register(userData);
-      const { user, access_token } = response.data;
-
-      // Store token in cookie (expires in 7 days)
-      Cookies.set('token', access_token, { expires: 7, sameSite: 'strict' });
-      Cookies.set('user', JSON.stringify(user), { expires: 7, sameSite: 'strict' });
-
-      setUser(user);
-      setIsAuthenticated(true);
-
-      return { success: true, user };
-    } catch (error) {
-      console.error('Signup error:', error);
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Registration failed'
-      };
-    }
-  };
-
   const login = async (email, password) => {
     try {
-      const response = await authService.login({ email, password });
-      const { user, access_token } = response.data;
-
-      // Store token in cookie (expires in 7 days)
-      Cookies.set('token', access_token, { expires: 7, sameSite: 'strict' });
-      Cookies.set('user', JSON.stringify(user), { expires: 7, sameSite: 'strict' });
-
-      setUser(user);
-      setIsAuthenticated(true);
-
-      return { success: true, user };
+      const response = await authService.login(email, password);
+      
+      if (response.success) {
+        setUser(response.user);
+        setIsAuthenticated(true);
+        return { success: true, user: response.user };
+      }
+      
+      return { success: false, message: 'Login failed' };
     } catch (error) {
       console.error('Login error:', error);
       return {
         success: false,
-        message: error.response?.data?.error || 'Invalid email or password'
+        message: error.message || 'Invalid email or password'
       };
     }
   };
@@ -89,8 +69,6 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      Cookies.remove('token');
-      Cookies.remove('user');
       setUser(null);
       setIsAuthenticated(false);
     }
@@ -100,7 +78,6 @@ export const AuthProvider = ({ children }) => {
     user,
     isAuthenticated,
     isLoading,
-    signup,
     login,
     logout,
   };

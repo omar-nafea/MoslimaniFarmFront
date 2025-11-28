@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import ProductCard from '../components/UI/ProductCard';
-import { productService } from '../services/api';
+import { productService } from '../services';
 import { useLanguage } from '../context/LanguageContext';
 import { Loader2, AlertCircle } from 'lucide-react';
-import { normalizeImageUrl } from '../utils/imageUtils';
 
 const Products = () => {
   const { t, language } = useLanguage();
@@ -20,31 +19,24 @@ const Products = () => {
       setLoading(true);
       setError('');
 
-      // Always fetch fresh product data from API
-      const response = await productService.getProducts();
-      const productData = response.data.data;
-
-      // Transform backend data to match frontend structure
-      const transformedProducts = productData.map(product => {
-        // Normalize image URL to ensure it's absolute
-        const imageUrl = normalizeImageUrl(
-          product.image_full_url || product.image_url,
-          'images/products'
-        );
-
-        return {
+      const response = await productService.getProducts({ active: true });
+      
+      if (response.success && response.data) {
+        // Transform backend data to match frontend structure
+        const transformedProducts = response.data.map(product => ({
           id: product.id,
           name: product.name,
-          nameAr: product.name_ar || product.name,
+          nameAr: product.name, // Use same name for Arabic (backend has unified name)
           description: product.description,
-          descriptionAr: product.description_ar || product.description,
+          descriptionAr: product.description,
           price: parseFloat(product.price),
-          image: imageUrl,
-          season: 'current' // All active products are considered current
-        };
-      });
+          image: product.image_url,
+          image_url: product.image_url,
+          season: 'current'
+        }));
 
-      setProducts(transformedProducts);
+        setProducts(transformedProducts);
+      }
     } catch (err) {
       console.error('Error fetching products:', err);
       setError(language === 'ar' ? 'حدث خطأ في تحميل المنتجات' : 'Failed to load products');
@@ -87,7 +79,9 @@ const Products = () => {
   return (
     <div>
       <div className="container py-2xl">
-        <h1 className="text-4xl text-center mb-xs text-brand-green-dark font-heading font-bold">{t('products.title')}</h1>
+        <h1 className="text-4xl text-center mb-xs text-brand-green-dark font-heading font-bold">
+          {t('products.title')}
+        </h1>
         <p className="text-center text-gray-600 mb-xl">{t('products.subtitle')}</p>
 
         {products.length > 0 ? (

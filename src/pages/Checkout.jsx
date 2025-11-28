@@ -4,12 +4,10 @@ import { CheckCircle, Trash2, Package, CreditCard, Loader2 } from 'lucide-react'
 import Button from '../components/UI/Button';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
-import { useAuth } from '../context/AuthContext';
-import { orderService } from '../services/api';
-
-
+import { orderService } from '../services';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+
 // Validation Schema
 const getValidationSchema = (language) => Yup.object({
   name: Yup.string()
@@ -30,8 +28,8 @@ const getValidationSchema = (language) => Yup.object({
     .required(language === 'ar' ? 'العنوان مطلوب' : 'Address is required'),
 
   addressLine2: Yup.string()
-    .min(5, language === 'ar' ? 'العنوان يجب أن يكون 5 أحرف على الأقل' : 'Address must be at least 5 characters')
-    .required(language === 'ar' ? 'الشقة مطلوب' : 'Address is required'),
+    .min(2, language === 'ar' ? 'رقم المبنى/الشقة مطلوب' : 'Building/Apt number is required')
+    .required(language === 'ar' ? 'الشقة مطلوب' : 'Building is required'),
 
   city: Yup.string()
     .min(2, language === 'ar' ? 'المدينة يجب أن تكون حرفين على الأقل' : 'City must be at least 2 characters')
@@ -42,9 +40,8 @@ const getValidationSchema = (language) => Yup.object({
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { cart, clearCart, removeFromCart } = useCart();
+  const { cart, clearCart, removeFromCart, updateQuantity } = useCart();
   const { t, language } = useLanguage();
-  const { user } = useAuth();
 
   const [items, setItems] = useState([]);
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -53,7 +50,6 @@ const Checkout = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Set items from cart
     setItems(cart);
   }, [cart]);
 
@@ -76,29 +72,33 @@ const Checkout = () => {
       setLoading(true);
 
       try {
-        // Prepare order items
-        const orderItems = items.map(item => ({
-          product_id: item.id,
-          quantity: item.quantity
-        }));
-
-        // Create order with address fields directly
+        // Format order payload according to API spec
         const orderPayload = {
-          items: orderItems,
-          name: values.name,
-          phone: values.phone,
-          notes: values.notes || null,
-          address_street: values.addressLine1,
-          address_building: values.addressLine2,
-          address_city: values.city
+          customer: {
+            name: values.name,
+            phone: values.phone,
+            address: {
+              city: values.city,
+              street: values.addressLine1,
+              building: values.addressLine2
+            }
+          },
+          items: items.map(item => ({
+            product_id: item.id,
+            quantity: item.quantity
+          })),
+          notes: values.notes || null
         };
 
-        const orderResponse = await orderService.createOrder(orderPayload);
+        const response = await orderService.createOrder(orderPayload);
 
-        // Success!
-        setOrderData(orderResponse.data);
-        setOrderPlaced(true);
-        clearCart();
+        if (response.success) {
+          setOrderData(response.data);
+          setOrderPlaced(true);
+          clearCart();
+        } else {
+          throw new Error(response.message || 'Failed to create order');
+        }
 
       } catch (err) {
         console.error('Order submission error:', err);
@@ -107,10 +107,10 @@ const Checkout = () => {
           ? 'حدث خطأ أثناء إرسال الطلب. يرجى المحاولة مرة أخرى.'
           : 'Failed to submit order. Please try again.';
 
-        if (err.response?.data?.message) {
-          errorMessage = err.response.data.message;
-        } else if (err.response?.data) {
-          const errors = Object.values(err.response.data).flat();
+        if (err.message) {
+          errorMessage = err.message;
+        } else if (err.errors) {
+          const errors = Object.values(err.errors).flat();
           errorMessage = errors.join(', ');
         }
 
@@ -121,14 +121,12 @@ const Checkout = () => {
     }
   });
 
-  const handleQuantityChange = (index, newQty) => {
-    if (newQty < 1) return;
-    if (newQty > 10) return;
-    const newItems = [...items];
-    newItems[index].quantity = newQty;
-    setItems(newItems);
+  const handleQuantityChange = (productId, newQty) => {
+    if (newQty < 1 || newQty > 10) return;
+    updateQuantity(productId, newQty);
   };
 
+  // Order Success Screen
   if (orderPlaced && orderData) {
     return (
       <div className="flex items-center justify-center min-h-[80vh]">
@@ -145,8 +143,15 @@ const Checkout = () => {
             {t('checkout.thankYou')}
           </p>
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <p className="text-sm text-gray-600 mt-2">
-              {language === 'ar' ? 'الإجمالي' : 'Total'}: <span className="font-bold">{orderData.total} {t('products.price')}</span>
+            <p className="text-sm text-gray-500 mb-2">
+              {language === 'ar' ? 'رقم الفاتورة' : 'Invoice Number'}
+            </p>
+            <p className="font-mono font-bold text-lg text-brand-green">
+              {orderData.invoice_number}
+            </p>
+            <p className="text-sm text-gray-600 mt-4">
+              {language === 'ar' ? 'الإجمالي' : 'Total'}: 
+              <span className="font-bold text-lg ml-2">{orderData.total} {t('products.price')}</span>
             </p>
           </div>
           <Button variant="gradient" onClick={() => navigate('/')} className="w-full">
@@ -176,21 +181,25 @@ const Checkout = () => {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-8 mt-xl">
           {/* Order Summary */}
           <div className="bg-white p-6 rounded-lg shadow-sm h-fit">
-            <h2 className="mb-lg pb-sm border-b border-gray-200 font-heading font-bold text-2xl">{t('checkout.yourOrder')}</h2>
+            <h2 className="mb-lg pb-sm border-b border-gray-200 font-heading font-bold text-2xl">
+              {t('checkout.yourOrder')}
+            </h2>
 
             {items.length > 0 ? (
               <div>
                 <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
-                  {items.map((item, index) => (
-                    <div key={index} className="flex gap-4 p-4 bg-gray-50 rounded-md border border-transparent transition-all duration-200 mb-md hover:bg-white hover:border-brand-green-light hover:shadow-sm">
+                  {items.map((item) => (
+                    <div key={item.id} className="flex gap-4 p-4 bg-gray-50 rounded-md border border-transparent transition-all duration-200 mb-md hover:bg-white hover:border-brand-green-light hover:shadow-sm">
                       <img
-                        src={item.image}
-                        alt={language === 'ar' ? item.nameAr : item.name}
+                        src={item.image || item.image_url}
+                        alt={language === 'ar' ? item.nameAr || item.name : item.name}
                         className="w-[70px] h-[70px] rounded-md object-cover shadow-sm"
                       />
                       <div className="flex-1 flex flex-col justify-center">
                         <div className="flex items-center justify-between">
-                          <h3 className="text-base font-bold text-gray-900 mb-0.5">{language === 'ar' ? item.nameAr : item.name}</h3>
+                          <h3 className="text-base font-bold text-gray-900 mb-0.5">
+                            {language === 'ar' ? item.nameAr || item.name : item.name}
+                          </h3>
                           <button
                             onClick={() => removeFromCart(item.id)}
                             className="flex items-center justify-center w-7 h-7 rounded-md text-red-500 bg-red-50 transition-all duration-200 hover:bg-red-500 hover:text-white"
@@ -203,14 +212,24 @@ const Checkout = () => {
                           {item.price} {t('products.price')}
                         </p>
                         <div className="flex items-center gap-2 mt-2">
-                          <button className="w-7 h-7 rounded-md text-white bg-brand-green transition-all duration-200 hover:bg-brand-green-dark" onClick={() => handleQuantityChange(index, item.quantity + 1)}>+</button>
+                          <button 
+                            className="w-7 h-7 rounded-md text-white bg-brand-green transition-all duration-200 hover:bg-brand-green-dark" 
+                            onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                          >
+                            +
+                          </button>
                           <input
                             type="text"
                             value={item.quantity}
-                            onChange={(e) => handleQuantityChange(index, parseInt(e.target.value) || 1)}
+                            onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 1)}
                             className="w-[100px] p-1 border border-gray-200 rounded-md text-center text-sm font-semibold focus:border-brand-green focus:outline-none"
                           />
-                          <button className="w-7 h-7 rounded-md text-white bg-brand-green transition-all duration-200 hover:bg-brand-green-dark" onClick={() => handleQuantityChange(index, item.quantity - 1)}>-</button>
+                          <button 
+                            className="w-7 h-7 rounded-md text-white bg-brand-green transition-all duration-200 hover:bg-brand-green-dark" 
+                            onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                          >
+                            -
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -220,16 +239,18 @@ const Checkout = () => {
                 <div className="border-t border-gray-200 pt-md">
                   <div className="flex justify-between mb-sm text-gray-600">
                     <span>{t('checkout.subtotal')}</span>
-                    <span>{totalAmount} {t('products.price')}</span>
+                    <span>{totalAmount.toFixed(2)} {t('products.price')}</span>
                   </div>
                   <div className="flex items-center justify-between mb-sm text-gray-600">
                     <span>{t('checkout.delivery')}</span>
-                    <span className='text-xs text-red-500'>ثمن الشحن يتغير حسب المكان</span>
+                    <span className='text-xs text-red-500'>
+                      {language === 'ar' ? 'ثمن الشحن يتغير حسب المكان' : 'Shipping varies by location'}
+                    </span>
                     <span>{shippingCost} {t('products.price')}</span>
                   </div>
                   <div className="flex justify-between text-gray-900 font-bold text-xl mt-md pt-sm border-t-2 border-dashed border-gray-200">
                     <span>{t('checkout.total')}</span>
-                    <span>{finalTotal} {t('products.price')}</span>
+                    <span>{finalTotal.toFixed(2)} {t('products.price')}</span>
                   </div>
                 </div>
               </div>
@@ -246,13 +267,16 @@ const Checkout = () => {
             )}
           </div>
 
-          {/* Delivery Details */}
+          {/* Delivery Details Form */}
           <div className="bg-white p-6 rounded-lg shadow-sm h-fit">
-            <h2 className="mb-lg pb-sm border-b border-gray-200 font-heading font-bold text-2xl">{t('checkout.deliveryDetails')}</h2>
+            <h2 className="mb-lg pb-sm border-b border-gray-200 font-heading font-bold text-2xl">
+              {t('checkout.deliveryDetails')}
+            </h2>
 
             <form onSubmit={formik.handleSubmit}>
-              <div className="">
-                <div className="">
+              <div className="space-y-4">
+                {/* Name */}
+                <div>
                   <label htmlFor="name" className="form-label">
                     {t('checkout.fullName')}
                   </label>
@@ -263,7 +287,7 @@ const Checkout = () => {
                     value={formik.values.name}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
-                    placeholder="Ahmed Ali"
+                    placeholder={language === 'ar' ? 'أحمد علي' : 'Ahmed Ali'}
                     className={`form-input ${formik.touched.name && formik.errors.name ? 'border-red-500' : ''}`}
                   />
                   {formik.touched.name && formik.errors.name && (
@@ -271,7 +295,8 @@ const Checkout = () => {
                   )}
                 </div>
 
-                <div className="">
+                {/* Phone */}
+                <div>
                   <label htmlFor="phone" className="form-label">
                     {t('checkout.phone')}
                   </label>
@@ -290,7 +315,8 @@ const Checkout = () => {
                   )}
                 </div>
 
-                <div className="">
+                {/* Address Fields */}
+                <div>
                   <label htmlFor="addressLine1" className="form-label">
                     {t('checkout.addressDetails')}
                   </label>
@@ -315,10 +341,8 @@ const Checkout = () => {
                     value={formik.values.addressLine2}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
-                    placeholder={language === 'ar' ? 'العمارة ،رقم الشقة، الدور' : 'Apartment, Floor (optional)'}
-
-                    className={`form-input ${formik.touched.addressLine2 && formik.errors.addressLine2 ? 'border-red-500' : ''}`}
-
+                    placeholder={language === 'ar' ? 'العمارة، رقم الشقة، الدور' : 'Building, Apartment, Floor'}
+                    className={`form-input mt-2 ${formik.touched.addressLine2 && formik.errors.addressLine2 ? 'border-red-500' : ''}`}
                   />
                   {formik.touched.addressLine2 && formik.errors.addressLine2 && (
                     <div className="text-red-500 text-sm mt-1">{formik.errors.addressLine2}</div>
@@ -332,20 +356,22 @@ const Checkout = () => {
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     placeholder={language === 'ar' ? 'المدينة' : 'City'}
-                    className={`form-input ${formik.touched.city && formik.errors.city ? 'border-red-500' : ''}`}
+                    className={`form-input mt-2 ${formik.touched.city && formik.errors.city ? 'border-red-500' : ''}`}
                   />
                   {formik.touched.city && formik.errors.city && (
                     <div className="text-red-500 text-sm mt-1">{formik.errors.city}</div>
                   )}
+                </div>
 
+                {/* Notes */}
+                <div>
                   <label htmlFor="notes" className="form-label">
                     {language === 'ar' ? 'ملاحظات (اختياري)' : 'Notes (optional)'}
                   </label>
                   <textarea
                     id="notes"
                     name="notes"
-                    rows="6"
-                    cols="30"
+                    rows="4"
                     value={formik.values.notes}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
@@ -354,10 +380,11 @@ const Checkout = () => {
                   ></textarea>
                 </div>
               </div>
+
               <Button
                 type="submit"
                 variant="gradient"
-                className="w-full block"
+                className="w-full mt-6"
                 disabled={items.length === 0 || loading || !formik.isValid}
               >
                 {loading ? (
@@ -366,7 +393,7 @@ const Checkout = () => {
                     {language === 'ar' ? 'جاري الإرسال...' : 'Submitting...'}
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center gap-2">
                     <CreditCard size={22} />
                     {t('checkout.placeOrder')}
                   </div>
