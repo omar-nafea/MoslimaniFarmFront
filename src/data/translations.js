@@ -25,6 +25,7 @@ export const translations = {
       favorites: "Customer Favorites",
       comingSoon: "Coming Soon",
       buyNow: "Buy Now",
+      addToCart: "Add To Cart",
       price: "EGP",
       unit: {
         kg: "kg",
@@ -134,6 +135,7 @@ export const translations = {
       favorites: "الأكثر طلباً",
       comingSoon: "قريباً",
       buyNow: "اشتري دلوقتي",
+      addToCart: "أضف إلى السلة",
       price: "جنية",
       unit: {
         kg: "كجم",

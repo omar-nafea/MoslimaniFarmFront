@@ -4,10 +4,14 @@ import { Phone } from 'lucide-react';
 import { Menu, X, ShoppingBag } from 'lucide-react';
 import logoIcon from '../../assets/images/logo-icon.jpg';
 import { useLanguage } from '../../context/LanguageContext';
+import { useCart } from '../../context/CartContext';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useLanguage();
+  const { cart } = useCart();
+
+  const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
 
   return (
     <nav className="sticky top-0 z-[1000] bg-white/95 backdrop-blur-[10px] shadow-sm py-sm">
@@ -29,8 +33,13 @@ const Navbar = () => {
           <a href="https://wa.me/201557285489" target="_blank" className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100">
             <Phone size={20} />
           </a>
-          <Link to="/checkout" className="text-gray-900 transition-colors duration-200 hover:text-brand-green">
+          <Link to="/checkout" className="text-gray-900 transition-colors duration-200 hover:text-brand-green relative">
             <ShoppingBag size={24} />
+            {cartItemCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-brand-green text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">
+                {cartItemCount}
+              </span>
+            )}
           </Link>
 
           <button className="md:hidden bg-transparent text-gray-900 p-2" onClick={() => setIsOpen(!isOpen)}>

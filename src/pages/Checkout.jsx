@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { CheckCircle, Trash2, Package, CreditCard, Loader2 } from 'lucide-react';
 import Button from '../components/UI/Button';
 import { useCart } from '../context/CartContext';
@@ -57,14 +57,17 @@ const Checkout = () => {
   const shippingCost = 35;
   const finalTotal = totalAmount + shippingCost;
 
+  // Load saved form data
+  const savedFormData = JSON.parse(localStorage.getItem('checkout_form_data') || '{}');
+
   const formik = useFormik({
     initialValues: {
-      name: '',
-      phone: '',
-      addressLine1: '',
-      addressLine2: '',
-      city: '',
-      notes: ''
+      name: savedFormData.name || '',
+      phone: savedFormData.phone || '',
+      addressLine1: savedFormData.addressLine1 || '',
+      addressLine2: savedFormData.addressLine2 || '',
+      city: savedFormData.city || '',
+      notes: savedFormData.notes || ''
     },
     validationSchema: getValidationSchema(language),
     onSubmit: async (values) => {
@@ -96,6 +99,7 @@ const Checkout = () => {
           setOrderData(response.data);
           setOrderPlaced(true);
           clearCart();
+          localStorage.removeItem('checkout_form_data');
         } else {
           throw new Error(response.message || 'Failed to create order');
         }
@@ -120,6 +124,11 @@ const Checkout = () => {
       }
     }
   });
+
+  // Persist form data
+  useEffect(() => {
+    localStorage.setItem('checkout_form_data', JSON.stringify(formik.values));
+  }, [formik.values]);
 
   const handleQuantityChange = (productId, newQty) => {
     if (newQty < 1 || newQty > 10) return;
@@ -150,7 +159,7 @@ const Checkout = () => {
               {orderData.invoice_number}
             </p>
             <p className="text-sm text-gray-600 mt-4">
-              {language === 'ar' ? 'الإجمالي' : 'Total'}: 
+              {language === 'ar' ? 'الإجمالي' : 'Total'}:
               <span className="font-bold text-lg ml-2">{orderData.total} {t('products.price')}</span>
             </p>
           </div>
@@ -190,16 +199,20 @@ const Checkout = () => {
                 <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
                   {items.map((item) => (
                     <div key={item.id} className="flex gap-4 p-4 bg-gray-50 rounded-md border border-transparent transition-all duration-200 mb-md hover:bg-white hover:border-brand-green-light hover:shadow-sm">
-                      <img
-                        src={item.image || item.image_url}
-                        alt={language === 'ar' ? item.nameAr || item.name : item.name}
-                        className="w-[70px] h-[70px] rounded-md object-cover shadow-sm"
-                      />
+                      <Link to={`/products/${item.id}`} className="shrink-0">
+                        <img
+                          src={item.image || item.image_url}
+                          alt={language === 'ar' ? item.nameAr || item.name : item.name}
+                          className="w-[70px] h-[70px] rounded-md object-cover shadow-sm hover:opacity-80 transition-opacity"
+                        />
+                      </Link>
                       <div className="flex-1 flex flex-col justify-center">
                         <div className="flex items-center justify-between">
-                          <h3 className="text-base font-bold text-gray-900 mb-0.5">
-                            {language === 'ar' ? item.nameAr || item.name : item.name}
-                          </h3>
+                          <Link to={`/products/${item.id}`} className="hover:text-brand-green transition-colors">
+                            <h3 className="text-base font-bold text-gray-900 mb-0.5">
+                              {language === 'ar' ? item.nameAr || item.name : item.name}
+                            </h3>
+                          </Link>
                           <button
                             onClick={() => removeFromCart(item.id)}
                             className="flex items-center justify-center w-7 h-7 rounded-md text-red-500 bg-red-50 transition-all duration-200 hover:bg-red-500 hover:text-white"
@@ -212,8 +225,8 @@ const Checkout = () => {
                           {item.price} {t('products.price')}
                         </p>
                         <div className="flex items-center gap-2 mt-2">
-                          <button 
-                            className="w-7 h-7 rounded-md text-white bg-brand-green transition-all duration-200 hover:bg-brand-green-dark" 
+                          <button
+                            className="w-7 h-7 rounded-md text-white bg-brand-green transition-all duration-200 hover:bg-brand-green-dark"
                             onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
                           >
                             +
@@ -224,8 +237,8 @@ const Checkout = () => {
                             onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 1)}
                             className="w-[100px] p-1 border border-gray-200 rounded-md text-center text-sm font-semibold focus:border-brand-green focus:outline-none"
                           />
-                          <button 
-                            className="w-7 h-7 rounded-md text-white bg-brand-green transition-all duration-200 hover:bg-brand-green-dark" 
+                          <button
+                            className="w-7 h-7 rounded-md text-white bg-brand-green transition-all duration-200 hover:bg-brand-green-dark"
                             onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
                           >
                             -
@@ -308,7 +321,8 @@ const Checkout = () => {
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     placeholder="01xxxxxxxxx"
-                    className={`form-input ${formik.touched.phone && formik.errors.phone ? 'border-red-500' : ''}`}
+                    dir="ltr"
+                    className={`form-input ${language === 'ar' ? 'text-right' : ''} ${formik.touched.phone && formik.errors.phone ? 'border-red-500' : ''}`}
                   />
                   {formik.touched.phone && formik.errors.phone && (
                     <div className="text-red-500 text-sm mt-1">{formik.errors.phone}</div>
@@ -384,6 +398,7 @@ const Checkout = () => {
               <Button
                 type="submit"
                 variant="gradient"
+                style={{ background: 'linear-gradient(to right, #DAA520, #228B22)', fontWeight: 'bold' }}
                 className="w-full mt-6"
                 disabled={items.length === 0 || loading || !formik.isValid}
               >
